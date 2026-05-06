@@ -26,6 +26,35 @@ YouTube Channel → Metadata + Transcripts → RAG Chunks → Embeddings → FAI
 
 ---
 
+## 🤖 New: RAG Pipeline Demo (Latest Version)
+
+We have recently added a complete, standalone RAG (Retrieval-Augmented Generation) pipeline demo using Vietnamese questions. It uses BGE-M3 for cross-lingual search (FAISS + BM25 Reciprocal Rank Fusion) and Gemini for generating the final answer.
+
+### 1. Setup
+
+Install the required packages for the RAG pipeline:
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Run the Full Pipeline Demo
+
+You can immediately test the pipeline by asking a question in Vietnamese. The script will search the pre-built index and generate an answer using the LLM.
+
+```bash
+python demo_pipeline.py --query "Theo đoạn trích, mục đích ban đầu của Geoffrey Hinton khi phát triển mạng neural là gì?"
+```
+
+### 3. Evaluate the Chunking & Retrieval
+
+If you want to test how well the system retrieves the correct chunks without using the LLM to generate an answer, you can run the evaluation script against our ground-truth queries:
+
+```bash
+python -m data.chunked.eval_retrieval --queries data/chunked/test_queries.jsonl --index index/eval/t072 --show-queries
+```
+
+---
+
 ## � Demo
 
 ### Scraping a YouTube Channel
