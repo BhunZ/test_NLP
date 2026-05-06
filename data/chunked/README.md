@@ -1,168 +1,148 @@
-# Transcript Chunking Pipeline
+# Chunked Data Pipeline
 
-Xử lý transcript YouTube thành các chunks tối ưu cho RAG system.
+Xu ly transcript thanh cac knowledge units cho RAG.
 
-##  Cấu trúc
+## Pipeline Flow
 
 ```
-data/chunked/
-├── pipeline.py                      # Entry point - chạy chunking
-├── chunk_config.py                 # Cấu hình pipeline
-├── chunk_utils.py                  # Hàm core
-├── cleanup_for_embedding.py         # Clean + context injection
-│
-├── README.md                        # File này
-├── EMBEDDING_READINESS_REPORT.md    # Báo cáo đánh giá
-├── HYBRID_CHUNK_SCHEMA_INCIDENT.md  # Ghi nhận sự cố
-│
-├── transcripts_time_chunked.jsonl   # Output: time-based
-├── transcripts_semantic_chunked.jsonl # Output: semantic
-├── transcripts_hybrid_chunked.jsonl # Output: hybrid (gốc)
-└── transcripts_enhanced.jsonl      # ✅ Output cuối - sẵn sàng embed
+transcripts_clean_sentence.jsonl (248 videos)
+         |
+         v
+  knowledge_units_1.py        (Time chunking + Semantic merge)
+         |
+         v
+   transcript_v3.jsonl          (13,561 chunks)
+         |
+         v
+    pipeline2.py                 (Enrich metadata)
+         |
+         v
+   transcript_v4.jsonl          (13,561 chunks + Keywords + VI hints)
 ```
 
-##  Cách chạy
+## Cac File
 
-### Bước 1: Chạy pipeline chunking
+### knowledge_units_1.py
+Tao knowledge units tu transcript.
 
+- Time chunking: Chia transcript thanh chunks theo thoi gian va token
+- Semantic merge: Merge cac chunk lien ke neu similar (giu timeline)
+
+### pipeline2.py
+Enrich metadata cho cac chunk.
+
+- Trich xuat keywords tieng Anh
+- Dich keywords sang tieng Viet
+- Tao embedding_text cho RAG
+- Them chunk_id va chunk_index
+
+### config1.py
+Cau hinh cho pipeline2.
+
+### utils1.py
+Ham tien tro cho pipeline2.
+
+## Chay Pipeline
+
+Buoc 1: Time chunking + Semantic merge
 ```bash
-cd D:\youtube-rag-scraper\data\chunked
-
-# Chạy hybrid (mặc định) - khuyến nghị
-python pipeline.py --strategy hybrid
-
-# Hoặc chạy từng loại
-python pipeline.py --strategy time      # Chỉ time-based
-python pipeline.py --strategy semantic  # Chỉ semantic
+python knowledge_units_1.py
 ```
 
-### Bước 2: Clean và chuẩn bị cho embedding
-
+Buoc 2: Enrich metadata
 ```bash
-python cleanup_for_embedding.py
+python pipeline2.py
 ```
 
-**Output:** `transcripts_enhanced.jsonl`
+## Token Config (knowledge_units_1.py)
 
-### Bước 3: Embed (sang folder embed)
+| Variable | Gia tri | Mo ta |
+|----------|--------|--------|
+| MIN_TOKENS | 120 | Token toi thieu |
+| TARGET_TOKENS | 160 | Token muc tieu |
+| MAX_TOKENS | 190 | Token toi da |
+| HARD_MAX_TOKENS | 215 | Token cuc dai |
+| MAX_MERGED_TOKENS | 215 | Token toi da sau merge |
 
-```bash
-# Copy sang data/ để embed script đọc được
-copy transcripts_enhanced.jsonl ..\data\semantic_chunks.jsonl
+## Similarity Config
 
-# Hoặc chạy trực tiếp
-python ..\embed\files\01_embed_and_index.py --input transcripts_enhanced.jsonl
-```
+| Variable | Gia tri | Mo ta |
+|----------|--------|--------|
+| MIN_SIMILARITY | 0.22 | Toi thieu de merge |
+| CONTINUATION_SIMILARITY | 0.12 | Cho tinh tiep theo |
 
-##  Chiến lược Chunking
+## Gap Config
 
-| Chiến lược | Mô tả | Output |
-|------------|-------|--------|
-| `time` | Chia theo thời gian (mỗi ~60s) | `transcripts_time_chunked.jsonl` |
-| `semantic` | Gom nhóm theo nội dung liên quan | `transcripts_semantic_chunked.jsonl` |
-| `hybrid` | Time → Semantic kết hợp | `transcripts_hybrid_chunked.jsonl` |
+| Variable | Gia tri | Mo ta |
+|----------|--------|--------|
+| SOFT_GAP_SECONDS | 0.9 | Cho phep merge |
+| HARD_GAP_SECONDS | 1.8 | Khong merge |
 
-##  Input
+## Quy Doi
 
-- **File:** `data/cleaned/transcripts_clean.jsonl`
-- **Format:**
-```json
-{
-  "video_id": "xxx",
-  "title": "Video Title",
-  "transcript": "Full transcript...",
-  "duration_seconds": 600
-}
-```
+| | Gia tri |
+|---------|--------|
+| 1 segment | ~15-20 words |
+| 1 chunk | 120-215 tokens |
+| 1 token | ~1.28 words |
 
-##  Output (transcripts_enhanced.jsonl)
+## Input/Output
 
-```json
-{
-  "chunk_id": "phWxl0nkgKk:semantic:v1:0000:0000005880:0000045920",
-  "video_id": "phWxl0nkgKk",
-  "title": "Stanford CS25: V2 I Strategic Games",
-  "course": "CS25_Transformers",
-  "source": "stanford_youtube",
-  "start_time": 5.88,
-  "end_time": 45.92,
-  "duration": 40.04,
-  "chunk_text": "...",           // Transcript gốc (debug/citation)
-  "embedding_text": "Course: CS25_Transformers\nVideo: ...\n\nThe bots were trained...", // Đã clean + context
-  "word_count": 119,
-  "token_estimate": 155
-}
-```
+| File | So luong | Mo ta |
+|------|---------|-------|
+| transcripts_clean_sentence.jsonl | 248 videos | Transcript da lam sach |
+| transcript_v3.jsonl | 13,561 chunks | Time + Semantic chunks |
+| transcript_v4.jsonl | 13,561 chunks | Enrich metadata |
 
-##  Cấu hình (chunk_config.py)
+## Chunk Metadata (transcript_v4.jsonl)
 
-```python
-target_tokens: 150          # Tokens mục tiêu/chunk
-max_chunk_duration: 60.0    # Giây (time-based)
-max_semantic_words: 220     # Từ (semantic)
-overlap_segments: 2         # Overlap giữa các chunk
-min_lexical_overlap: 0.08   # 8% overlap tối thiểu
-```
+| Field | Mo ta |
+|-------|-------|
+| video_id | ID video goc |
+| title | Ten bai giang |
+| course | Ten khoa hoc |
+| source | Nguon (stanford_youtube...) |
+| chunk_type | crosslingual_knowledge |
+| chunk_text | Noi dung chunk |
+| embedding_text | Text cho vector hoa |
+| start_time | Thoi diem bat dau (giay) |
+| end_time | Thoi diem ket thuc (giay) |
+| duration | Thoi luong chunk |
+| token_count | So token |
+| semantic_topic | Topic: Training, Transformer, NLP... |
+| chunk_id | Unique ID: video_0001 |
+| chunk_index | Thu tu trong video |
 
-##  Cleanup (cleanup_for_embedding.py)
-
-Script xử lý:
-
-1. **Context Injection** - Thêm header vào text:
-   ```
-   Course: CS25_Transformers
-   Video: Stanford CS25: V2 I Strategic Games
-   Source: stanford_youtube
-   Time: 00:05 - 00:45
-   ```
-
-2. **Filler Word Removal** - Loại bỏ:
-   - like, basically, you know, kind of
-   - I think, I mean, well, yeah, okay...
-
-3. **Text Cleanup**:
-   - Viết hoa đầu câu
-   - Thêm dấu chấm cuối
-   - Xóa khoảng trắng thừa
-
-##  Thống kê
-
-- **Tổng chunks:** 18,395
-- **Average words/chunk:** ~120
-- **Estimated tokens/chunk:** ~150-180
-
-##  Checklist trước khi embed
-
-- [x] transcripts_hybrid_chunked.jsonl tồn tại
-- [x] Chạy `python cleanup_for_embedding.py`
-- [x] transcripts_enhanced.jsonl đã tạo
-- [x] Kiểm tra filler words đã remove
-- [x] Context header đúng format
-
-##  Pipeline hoàn chỉnh
+## Embedding Text Format
 
 ```
-data/cleaned/transcripts_clean.jsonl
-         ↓
-   pipeline.py --strategy hybrid
-         ↓
-transcripts_hybrid_chunked.jsonl
-         ↓
-   cleanup_for_embedding.py
-         ↓
-transcripts_enhanced.jsonl  ← DÙNG ĐỂ EMBED
-         ↓
-   embed/files/01_embed_and_index.py
-         ↓
-   embed/files/index/ (FAISS + metadata)
+Course: {course}
+Lecture: {title}
+Time: {start} - {end}
+Topic: {topic}
+Keywords: {keywords}
+Keywords (Vietnamese): {vi_keywords}
+
+Content:
+{chunk_text}
 ```
 
-##  Yêu cầu
+## Semantic Topic
 
-- Python 3.10+
-- Input: `data/cleaned/transcripts_clean.jsonl`
-- Dependencies: xem `requirements.txt` root
+Cac topic duoc phat hien:
+- Neural Networks
+- Transformer
+- Training
+- NLP
+- Computer Vision
+- Reinforcement Learning
+- Math/Statistics
+- General
 
----
+## Notes
 
-**Ghi chú:** Giữ nguyên `chunk_text` cho debug/citation, dùng `embedding_text` để tạo vector.
+- Giu nguyen timeline (khong nhay lung tung)
+- Semantic chi merge cac chunk lien ke
+- Topic chi dung de annotate, khong quyet dinh merge
+- chunk_text giu nguyen cho debug/citation
+- embedding_text dung de tao vector
