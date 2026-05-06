@@ -75,3 +75,12 @@ def make_youtube_url(video_id: str, start_time: float = 0) -> str:
     Dùng để tạo link nhảy đến đúng vị trí trong video.
     """
     return f"https://youtu.be/{video_id}?t={int(start_time)}"
+
+
+def build_source_label(meta: dict) -> str:
+    """
+    Tạo nhãn hiển thị cho nguồn (vd: Bài giảng 1 [00:02:05]).
+    """
+    title = meta.get("title") or meta.get("video_id") or "Unknown"
+    time_str = format_timestamp(meta.get("start_time", 0.0))
+    return f"{title} [{time_str}]"

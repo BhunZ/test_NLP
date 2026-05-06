@@ -21,3 +21,9 @@ langchain-community
 langchain-core
 jq
 langchain_huggingface
+
+# ========= LLM (Stage 6: answer generation) =========
+# Default provider: Google Gemini (free tier)
+# Get a free API key at https://aistudio.google.com/apikey
+# Then: export GEMINI_API_KEY=your_key
+google-genai>=0.3.0
