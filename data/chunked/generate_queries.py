@@ -390,7 +390,7 @@ def main() -> None:
     setup_logging(level=logging.DEBUG if args.verbose else logging.INFO)
 
     # Check API key (env var takes priority, falls back to hardcoded key)
-    api_key = os.environ.get("GEMINI_API_KEY", "") or "AIzaSyC7Gp25ncAxHnqv8o_b1d9ZtK52gpd9-1w"
+    api_key = os.environ.get("GEMINI_API_KEY", "") or "API_KEY"
 
     if not args.input.exists():
         logger.error("Input file not found: %s", args.input)
