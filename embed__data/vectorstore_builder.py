@@ -18,16 +18,20 @@ def load_documents(path: str) -> list[Document]:
                 page_content=chunk["chunk_text"],
                 metadata={
                     #  thêm doc_id để dùng làm key trong hybrid search
-                    "doc_id": f"{chunk.get('video_id', 'unknown')}_{idx}",
+                    "doc_id": f"{chunk.get('chunk_index', 'unknown')}",
                     "video_id": chunk.get("video_id"),
+                    "chunk_id": chunk.get("chunk_id"),
                     "title": chunk.get("title"),
                     "course": chunk.get("course"),
+                    "playlist_id": chunk.get("playlist_id"),
+                    "published_at": chunk.get("published_at"),
                     "start_time": chunk.get("start_time"),
                     "end_time": chunk.get("end_time"),
                     "duration": chunk.get("duration"),
                     "source": chunk.get("source"),
                     "chunk_type": chunk.get("chunk_type"),
                     "token_count": chunk.get("token_count"),
+                    "url": chunk.get("url")
                 }
             )
             docs.append(doc)
@@ -37,7 +41,7 @@ def load_documents(path: str) -> list[Document]:
 
 def build_vectorstore(
     data_path: str,
-    index_path: str = "indexes/faiss_index",
+    index_path: str = "indexes/faiss_index_072",
     embedding_model: str = "BAAI/bge-m3"
 ):
     """Build hoặc load FAISS vectorstore"""

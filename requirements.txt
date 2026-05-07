@@ -7,6 +7,7 @@ requests
 
 # ========= Embedding / Vector DB =========
 sentence-transformers>=2.2.0
+transformers<5
 faiss-cpu>=1.7.0
 numpy>=1.24.0
 rank-bm25>=0.2.2
@@ -21,3 +22,4 @@ langchain-community
 langchain-core
 jq
 langchain_huggingface
+langchain-ollama

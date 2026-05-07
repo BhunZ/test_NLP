@@ -1,0 +1,146 @@
+Queries:
+- original: Gradient descent la gi?
+- q1_literal: what is gradient descent
+- q2_expanded: explain gradient descent algorithm and its applications in machine learning
+🔧 Hybrid Retriever Config:
+   - BM25 weight: 20.0%
+   - Dense weight: 80.0%
+   - Retrieve k: 20
+   - Fusion k: 6
+   - Rerank k: 3
+   - Tracing: ✓
+Loading existing FAISS index from indexes/faiss_index_072
+Loading BM25 from indexes/bm25_072.pkl
+ Loading reranker: BAAI/bge-reranker-v2-m3
+ Hybrid Retriever ready!
+
+
+================ original: Gradient descent la gi? ================
+You're using a XLMRobertaTokenizerFast tokenizer. Please note that with a fast tokenizer, using the `__call__` method is faster than using a method to encode the text followed by a call to the `pad` method to get a padded encoding.
+Retrieved docs: 3
+
+--- Document 1 ---
+doc_id: 28
+fusion_score: 0.5975
+rerank_score: 0.0161
+title: Stanford CS224N NLP with Deep Learning | 2023 | Lecture 9 - Pretraining
+url: https://youtu.be/DGfCRXuNA2w?t=1841
+metadata: {'doc_id': '28', 'video_id': 'DGfCRXuNA2w', 'chunk_id': 'DGfCRXuNA2w:knowledge_unit:v3:0028', 'title': 'Stanford CS224N NLP with Deep Learning | 2023 | Lecture 9 - Pretraining', 'course': 'CS224N_NLP', 'playlist_id': 'PLoROMvodv4rMFqRtEuo6SGjY4XbRIVRd4', 'published_at': '2023-08-21T22:54:34Z', 'start_time': 1841.22, 'end_time': 1911.7, 'duration': 70.48, 'source': 'stanford_youtube', 'chunk_type': 'knowledge_unit', 'token_count': 222, 'url': 'https://youtu.be/DGfCRXuNA2w?t=1841', 'rerank_score': 0.0161}
+content:
+You start gradient descent at theta hat Which your pretraining process gave you And then, if you could solve this min and wanted to It feels the starting point Shouldn't matter But it really, really, really does It really does That's and we'll talk a bit more about this later But the process of gradient descent Maybe it stick relatively close to the theta hat During finetuning, ri ght You start at theta hat, and then you Walk downhill with gradient descent until you hit a valley And that valley ends up being really good because it's Close to the pretraining parameters, which were really Good for a lot of things This is a cool place where practice and theory Are meeting, where optimization pe...
+
+--- Document 2 ---
+doc_id: 36
+fusion_score: 0.5093
+rerank_score: 0.0128
+title: Stanford CS229 Machine Learning I Feature / Model selection, ML Advice I 2022 I Lecture 11
+url: https://youtu.be/NirZnqwYfYU?t=2691
+metadata: {'doc_id': '36', 'video_id': 'NirZnqwYfYU', 'chunk_id': 'NirZnqwYfYU:knowledge_unit:v3:0036', 'title': 'Stanford CS229 Machine Learning I Feature / Model selection, ML Advice I 2022 I Lecture 11', 'course': 'CS229_ML', 'playlist_id': 'PLoROMvodv4rNyWOpJg_Yh4NSqI4Z4vOYy', 'published_at': '2023-05-24T18:05:55Z', 'start_time': 2691.0, 'end_time': 2766.65, 'duration': 75.65, 'source': 'stanford_youtube', 'chunk_type': 'knowledge_unit', 'token_count': 222, 'url': 'https://youtu.be/NirZnqwYfYU?t=2691', 'rerank_score': 0.0128}
+content:
+And the reason is , fundamental reason Is pretty simple, especially if I draw it in this way Of course, if you want to proof it, it's a little bit more Complicated The reason is really just that you start with 0 This is where you start with, gradient descent And you have a property such that when you How do I maybe let's erase this You have a property such that if you start with Initially it's 0 And then at any time Your theta is always in the span of all the data points Here, I'm going to have one data point , your theta cannot move arbitrarily in any places You have a restriction on where the theta can go , for this particular case, what happens Is really just that you are just moving alon...
+
+--- Document 3 ---
+doc_id: 55
+fusion_score: 0.5135
+rerank_score: 0.0097
+title: Stanford CS224N NLP with Deep Learning | 2023 | Lecture 8 - Self-Attention and Transformers
+url: https://youtu.be/LWMzyfvuehA?t=3587
+metadata: {'doc_id': '55', 'video_id': 'LWMzyfvuehA', 'chunk_id': 'LWMzyfvuehA:knowledge_unit:v3:0055', 'title': 'Stanford CS224N NLP with Deep Learning | 2023 | Lecture 8 - Self-Attention and Transformers', 'course': 'CS224N_NLP', 'playlist_id': 'PLoROMvodv4rMFqRtEuo6SGjY4XbRIVRd4', 'published_at': '2023-08-21T22:57:31Z', 'start_time': 3587.62, 'end_time': 3647.39, 'duration': 59.77, 'source': 'stanford_youtube', 'chunk_type': 'knowledge_unit', 'token_count': 226, 'url': 'https://youtu.be/LWMzyfvuehA?t=3587', 'rerank_score': 0.0097}
+content:
+Vanishing gradients through this layer I can at least learn everything behind it Because I've got this residual connection where The gradient is 1, because it's the identity This is really nice And it also maybe is a bias at least At initialization, everything looks a little bit The identity function now, right Because if the contribution of the lay Is somewhat small because all of your weights are small And I have the addition from the input Maybe the whole thing looks a little bit The identity, which might be A good place to start And there are really nice visualizations I just love this visualization This is your loss landscape, right Your gradient descent, and you're Trying to traverse t...
+
+Trace:
+num_bm25_results: 20
+num_faiss_results: 20
+num_fused: 3
+weights: {'bm25': 0.2, 'dense': 0.8}
+fusion_scores: {'9': np.float64(1.7039), '14': np.float64(0.8), '28': np.float64(0.5975), '55': np.float64(0.5135), '36': np.float64(0.5093), '33': np.float64(0.5052)}
+
+================ q1_literal: what is gradient descent ================
+Retrieved docs: 3
+
+--- Document 1 ---
+doc_id: 9
+fusion_score: 1.2058
+rerank_score: 0.9905
+title: Stanford CS224N NLP with Deep Learning | Winter 2021 | Lecture 2 - Neural Classifiers
+url: https://youtu.be/gqaHkPEZAew?t=629
+metadata: {'doc_id': '9', 'video_id': 'gqaHkPEZAew', 'chunk_id': 'gqaHkPEZAew:knowledge_unit:v3:0009', 'title': 'Stanford CS224N NLP with Deep Learning | Winter 2021 | Lecture 2 - Neural Classifiers', 'course': 'CS224N_NLP', 'playlist_id': 'PLoROMvodv4rMFqRtEuo6SGjY4XbRIVRd4', 'published_at': '2023-08-24T19:38:40Z', 'start_time': 629.85, 'end_time': 714.26, 'duration': 84.41, 'source': 'stanford_youtube', 'chunk_type': 'knowledge_unit', 'token_count': 230, 'url': 'https://youtu.be/gqaHkPEZAew?t=629', 'rerank_score': 0.9905}
+content:
+More quickly And so this is the algorithm that you'll Be using everywhere, including right from the beginning From our assignments Again, just an extra comment of more complicated Stuff we'll come back to AUDIO OUT the gradient descent is a performance hack That lets you learn much more quickly It turns out it's not only a performance hack Neural nets have some quite counter intuitive properties And the fact that stochastic gradient descent Is noisy and bounces around as it does its thing It means that in complex networks It learns better solutions than if you Were to run plain gradient descent very slowly You can both compute much more quickly And do a better job One final note on running s...
+
+--- Document 2 ---
+doc_id: 5
+fusion_score: 0.4517
+rerank_score: 0.9067
+title: Stanford CS224N NLP with Deep Learning | Winter 2021 | Lecture 2 - Neural Classifiers
+url: https://youtu.be/gqaHkPEZAew?t=355
+metadata: {'doc_id': '5', 'video_id': 'gqaHkPEZAew', 'chunk_id': 'gqaHkPEZAew:knowledge_unit:v3:0005', 'title': 'Stanford CS224N NLP with Deep Learning | Winter 2021 | Lecture 2 - Neural Classifiers', 'course': 'CS224N_NLP', 'playlist_id': 'PLoROMvodv4rMFqRtEuo6SGjY4XbRIVRd4', 'published_at': '2023-08-24T19:38:40Z', 'start_time': 355.81, 'end_time': 422.87, 'duration': 67.06, 'source': 'stanford_youtube', 'chunk_type': 'knowledge_unit', 'token_count': 222, 'url': 'https://youtu.be/gqaHkPEZAew?t=355', 'rerank_score': 0.9067}
+content:
+With respect to the parameters that Will allow us to make progress But I didn't altogether put that together What we're going to do is we start off With random word vectors We initialize them to small numbers Near 0 in each dimension We've defined our loss function J Which we looked at last time And then we're going to use a gradient descent Algorithm, which is an iterative algorithm that Learns to maximize J of theta by changing theta And so the idea of this algorithm Is that from the current values of theta You calculate the gradient j of theta And then what you're going to do is make a small step In the direction of the negative gradient The gradient is pointing upwards And we're taking a...
+
+--- Document 3 ---
+doc_id: 28
+fusion_score: 0.4111
+rerank_score: 0.7235
+title: Stanford CS224N NLP with Deep Learning | 2023 | Lecture 9 - Pretraining
+url: https://youtu.be/DGfCRXuNA2w?t=1841
+metadata: {'doc_id': '28', 'video_id': 'DGfCRXuNA2w', 'chunk_id': 'DGfCRXuNA2w:knowledge_unit:v3:0028', 'title': 'Stanford CS224N NLP with Deep Learning | 2023 | Lecture 9 - Pretraining', 'course': 'CS224N_NLP', 'playlist_id': 'PLoROMvodv4rMFqRtEuo6SGjY4XbRIVRd4', 'published_at': '2023-08-21T22:54:34Z', 'start_time': 1841.22, 'end_time': 1911.7, 'duration': 70.48, 'source': 'stanford_youtube', 'chunk_type': 'knowledge_unit', 'token_count': 222, 'url': 'https://youtu.be/DGfCRXuNA2w?t=1841', 'rerank_score': 0.7235}
+content:
+You start gradient descent at theta hat Which your pretraining process gave you And then, if you could solve this min and wanted to It feels the starting point Shouldn't matter But it really, really, really does It really does That's and we'll talk a bit more about this later But the process of gradient descent Maybe it stick relatively close to the theta hat During finetuning, ri ght You start at theta hat, and then you Walk downhill with gradient descent until you hit a valley And that valley ends up being really good because it's Close to the pretraining parameters, which were really Good for a lot of things This is a cool place where practice and theory Are meeting, where optimization pe...
+
+Trace:
+num_bm25_results: 20
+num_faiss_results: 20
+num_fused: 3
+weights: {'bm25': 0.2, 'dense': 0.8}
+fusion_scores: {'9': np.float64(1.2058), '26': np.float64(0.8), '33': np.float64(0.482), '5': np.float64(0.4517), '28': np.float64(0.4111), '4': np.float64(0.4093)}
+
+================ q2_expanded: explain gradient descent algorithm and its applications in machine learning ================
+Retrieved docs: 3
+
+--- Document 1 ---
+doc_id: 5
+fusion_score: 0.4834
+rerank_score: 0.7798
+title: Stanford CS224N NLP with Deep Learning | Winter 2021 | Lecture 2 - Neural Classifiers
+url: https://youtu.be/gqaHkPEZAew?t=355
+metadata: {'doc_id': '5', 'video_id': 'gqaHkPEZAew', 'chunk_id': 'gqaHkPEZAew:knowledge_unit:v3:0005', 'title': 'Stanford CS224N NLP with Deep Learning | Winter 2021 | Lecture 2 - Neural Classifiers', 'course': 'CS224N_NLP', 'playlist_id': 'PLoROMvodv4rMFqRtEuo6SGjY4XbRIVRd4', 'published_at': '2023-08-24T19:38:40Z', 'start_time': 355.81, 'end_time': 422.87, 'duration': 67.06, 'source': 'stanford_youtube', 'chunk_type': 'knowledge_unit', 'token_count': 222, 'url': 'https://youtu.be/gqaHkPEZAew?t=355', 'rerank_score': 0.7798}
+content:
+With respect to the parameters that Will allow us to make progress But I didn't altogether put that together What we're going to do is we start off With random word vectors We initialize them to small numbers Near 0 in each dimension We've defined our loss function J Which we looked at last time And then we're going to use a gradient descent Algorithm, which is an iterative algorithm that Learns to maximize J of theta by changing theta And so the idea of this algorithm Is that from the current values of theta You calculate the gradient j of theta And then what you're going to do is make a small step In the direction of the negative gradient The gradient is pointing upwards And we're taking a...
+
+--- Document 2 ---
+doc_id: 9
+fusion_score: 1.0
+rerank_score: 0.51
+title: Stanford CS224N NLP with Deep Learning | Winter 2021 | Lecture 2 - Neural Classifiers
+url: https://youtu.be/gqaHkPEZAew?t=629
+metadata: {'doc_id': '9', 'video_id': 'gqaHkPEZAew', 'chunk_id': 'gqaHkPEZAew:knowledge_unit:v3:0009', 'title': 'Stanford CS224N NLP with Deep Learning | Winter 2021 | Lecture 2 - Neural Classifiers', 'course': 'CS224N_NLP', 'playlist_id': 'PLoROMvodv4rMFqRtEuo6SGjY4XbRIVRd4', 'published_at': '2023-08-24T19:38:40Z', 'start_time': 629.85, 'end_time': 714.26, 'duration': 84.41, 'source': 'stanford_youtube', 'chunk_type': 'knowledge_unit', 'token_count': 230, 'url': 'https://youtu.be/gqaHkPEZAew?t=629', 'rerank_score': 0.51}
+content:
+More quickly And so this is the algorithm that you'll Be using everywhere, including right from the beginning From our assignments Again, just an extra comment of more complicated Stuff we'll come back to AUDIO OUT the gradient descent is a performance hack That lets you learn much more quickly It turns out it's not only a performance hack Neural nets have some quite counter intuitive properties And the fact that stochastic gradient descent Is noisy and bounces around as it does its thing It means that in complex networks It learns better solutions than if you Were to run plain gradient descent very slowly You can both compute much more quickly And do a better job One final note on running s...
+
+--- Document 3 ---
+doc_id: 7
+fusion_score: 0.4664
+rerank_score: 0.4782
+title: Stanford CS224N NLP with Deep Learning | Winter 2021 | Lecture 2 - Neural Classifiers
+url: https://youtu.be/gqaHkPEZAew?t=484
+metadata: {'doc_id': '7', 'video_id': 'gqaHkPEZAew', 'chunk_id': 'gqaHkPEZAew:knowledge_unit:v3:0007', 'title': 'Stanford CS224N NLP with Deep Learning | Winter 2021 | Lecture 2 - Neural Classifiers', 'course': 'CS224N_NLP', 'playlist_id': 'PLoROMvodv4rMFqRtEuo6SGjY4XbRIVRd4', 'published_at': '2023-08-24T19:38:40Z', 'start_time': 484.6, 'end_time': 559.14, 'duration': 74.54, 'source': 'stanford_youtube', 'chunk_type': 'knowledge_unit', 'token_count': 222, 'url': 'https://youtu.be/gqaHkPEZAew?t=484', 'rerank_score': 0.4782}
+content:
+We then walk a little bit in the negative direction Of the gradient using our learning rate or step Size alpha And that gives us new parameter values Where that means that these are vectors But for each individual paramet We're updating it a little bit by working out The partial derivative of j with respect to that parameter That's the simple gradient descent algorithm Nobody uses it and you shouldn't use it The problem is that our j is a function Of all windows in the corpus Remember we're doing this sum over every cent Word in the entire corpus And we'll often have billions of words in the corpus Working out J of theta Or the gradient of J of theta would be extremely, extremely Expensive B...
+
+Trace:
+num_bm25_results: 20
+num_faiss_results: 20
+num_fused: 3
+weights: {'bm25': 0.2, 'dense': 0.8}
+fusion_scores: {'4': np.float64(1.2114), '9': np.float64(1.0), '26': np.float64(0.8), '5': np.float64(0.4834), '7': np.float64(0.4664), '8': np.float64(0.4498)}
+
+================ Combined unique docs ================
+Unique docs across all queries: 6
+1. doc_id=28 title=Stanford CS224N NLP with Deep Learning | 2023 | Lecture 9 - Pretraining rerank_score=0.7235
+2. doc_id=36 title=Stanford CS229 Machine Learning I Feature / Model selection, ML Advice I 2022 I Lecture 11 rerank_score=0.0128
+3. doc_id=55 title=Stanford CS224N NLP with Deep Learning | 2023 | Lecture 8 - Self-Attention and Transformers rerank_score=0.0097
+4. doc_id=9 title=Stanford CS224N NLP with Deep Learning | Winter 2021 | Lecture 2 - Neural Classifiers rerank_score=0.51
+5. doc_id=5 title=Stanford CS224N NLP with Deep Learning | Winter 2021 | Lecture 2 - Neural Classifiers rerank_score=0.7798
+6. doc_id=7 title=Stanford CS224N NLP with Deep Learning | Winter 2021 | Lecture 2 - Neural Classifiers rerank_score=0.4782
