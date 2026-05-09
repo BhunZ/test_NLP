@@ -9,6 +9,15 @@ from langchain_core.documents import Document
 from vectorstore_builder import load_documents
 
 
+def _normalize_doc_metadata(doc: Document) -> Document:
+    metadata = dict(doc.metadata)
+    if metadata.get("chunk_id"):
+        metadata["doc_id"] = str(metadata["chunk_id"])
+    elif metadata.get("doc_id"):
+        metadata["doc_id"] = str(metadata["doc_id"])
+    return Document(page_content=doc.page_content, metadata=metadata)
+
+
 class BM25PickleRetriever:
     """Adapter for older BM25 pickle files saved as {'bm25': BM25Okapi, 'docs': [...]}."""
 
@@ -28,7 +37,7 @@ class BM25PickleRetriever:
 
         results = []
         for index in ranked_indices:
-            doc = self.docs[index]
+            doc = _normalize_doc_metadata(self.docs[index])
             metadata = dict(doc.metadata)
             metadata["score"] = float(scores[index])
             results.append(Document(page_content=doc.page_content, metadata=metadata))
@@ -38,9 +47,12 @@ class BM25PickleRetriever:
 
 def _as_bm25_retriever(obj: Any, k: int) -> Any:
     if isinstance(obj, dict) and "bm25" in obj and "docs" in obj:
-        return BM25PickleRetriever(obj["bm25"], obj["docs"], k=k)
+        docs = [_normalize_doc_metadata(doc) for doc in obj["docs"]]
+        return BM25PickleRetriever(obj["bm25"], docs, k=k)
 
     obj.k = k
+    if hasattr(obj, "docs"):
+        obj.docs = [_normalize_doc_metadata(doc) for doc in obj.docs]
     return obj
 
 

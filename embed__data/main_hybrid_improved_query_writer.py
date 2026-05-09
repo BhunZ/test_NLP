@@ -4,7 +4,7 @@ from typing import Any
 
 
 DEFAULT_DATA_PATH = "/Users/carwyn/Downloads/transcript_v3_t072.jsonl"
-DEFAULT_FAISS_INDEX_PATH = "indexes/faiss_index_072"
+DEFAULT_FAISS_INDEX_PATH = "indexes/faiss_index_072_n"
 DEFAULT_BM25_PATH = "indexes/bm25_072.pkl"
 DEFAULT_QUERY = "Gradient descent la gi?"
 
@@ -74,6 +74,12 @@ def parse_args() -> argparse.Namespace:
         default=0.8,
         help="Dense/FAISS weight for hybrid_improved weighted fusion.",
     )
+    parser.add_argument(
+        "--fusion-method",
+        choices=["rrf", "weighted"],
+        default="rrf",
+        help="Fusion method for BM25 + FAISS results.",
+    )
     return parser.parse_args()
 
 
@@ -113,12 +119,13 @@ def print_documents(docs: list[Any], trace: dict[str, Any]) -> None:
     fusion_details = trace.get("fusion_details", {})
 
     for i, doc in enumerate(docs, 1):
-        doc_id = doc.metadata.get("doc_id", "")
+        doc_id = doc.metadata.get("chunk_id") or doc.metadata.get("doc_id", "")
         score = fusion_details.get(doc_id, {}).get("final")
         rerank_score = doc.metadata.get("rerank_score")
 
         print(f"\n--- Document {i} ---")
         print(f"doc_id: {doc_id}")
+        print(f"chunk_id: {doc.metadata.get('chunk_id')}")
         if score is not None:
             print(f"fusion_score: {score}")
         if rerank_score is not None:
@@ -168,6 +175,7 @@ def main() -> None:
         use_reranker=not args.no_reranker,
         weight_bm25=args.weight_bm25,
         weight_dense=args.weight_dense,
+        fusion_method=args.fusion_method,
         enable_tracing=True,
     )
 
@@ -182,14 +190,14 @@ def main() -> None:
         print_trace(trace)
 
         for doc in docs:
-            key = doc.metadata.get("doc_id") or id(doc)
+            key = doc.metadata.get("chunk_id") or doc.metadata.get("doc_id") or id(doc)
             combined_docs[key] = doc
 
     print("\n================ Combined unique docs ================")
     print(f"Unique docs across all queries: {len(combined_docs)}")
     for i, doc in enumerate(combined_docs.values(), 1):
         print(
-            f"{i}. doc_id={doc.metadata.get('doc_id')} "
+            f"{i}. chunk_id={doc.metadata.get('chunk_id') or doc.metadata.get('doc_id')} "
             f"title={doc.metadata.get('title')} "
             f"rerank_score={doc.metadata.get('rerank_score')}"
         )
