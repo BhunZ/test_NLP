@@ -23,3 +23,15 @@ langchain-core
 jq
 langchain_huggingface
 langchain-ollama
+
+# ========= LLM judge providers (for evaluate_ragas.py) =========
+# Install whichever you have a key for. .env file loading is optional.
+google-genai           # Gemini (deprecated, ~20 RPD free)
+groq                   # Groq Cloud (~14k RPD on 8B)
+python-dotenv          # .env file loading
+# cerebras-cloud-sdk   # optional — only if not using OpenAI-compat HTTP
+# mistralai            # optional — only if not using OpenAI-compat HTTP
+
+# ========= Answer-step evaluation metrics (evaluation/answer_eval.py) =========
+nltk                   # for BLEU score
+rouge                  # for ROUGE-1/2/L

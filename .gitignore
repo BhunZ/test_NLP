@@ -46,5 +46,17 @@ scrape_youtube.py
 .DS_Store
 Thumbs.db
 
-# Environment variables
+# Environment variables (catch ALL variants — never commit real keys)
 .env
+.env.*
+!.env.example
+.env.txt
+.env.local
+
+# Claude Code session data
+.claude/
+
+# Eval reports (regenerated from running the eval scripts)
+*ragas_report*.json
+*answer_eval_report*.json
+*eval_report*.json
