@@ -29,6 +29,21 @@ User Query → Hybrid Retrieval (FAISS + BM25) → Reranking → LLM Answer (Gro
 
 ## 🚀 Quick Start
 
+### Clone the Repository
+
+```bash
+# Clone the entire repository
+git clone https://github.com/BhunZ/test_NLP.git
+cd test_NLP
+
+# Or clone a specific branch
+git clone -b feature/pipeline-reorg https://github.com/BhunZ/test_NLP.git
+cd test_NLP
+
+# If you already cloned but want this specific branch
+git checkout feature/pipeline-reorg
+```
+
 ### Prerequisites
 
 1. **Python 3.10+**
