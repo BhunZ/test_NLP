@@ -28,6 +28,7 @@ ENV/
 !reports/
 !data/
 !indexes/
+!frontend/
 
 # VTT subtitle temp files
 *.vtt
