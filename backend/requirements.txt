@@ -1,0 +1,11 @@
+fastapi>=0.110
+uvicorn[standard]>=0.27
+pydantic>=2.6
+python-dotenv>=1.0
+streamlit>=1.35
+sse-starlette>=2.0.0
+
+# Uses existing repo deps for retrieval + LLM calls:
+# - langchain-core, langchain-community
+# - faiss-cpu, sentence-transformers, rank-bm25, transformers, etc.
+# Those remain in the repo root requirements.txt.

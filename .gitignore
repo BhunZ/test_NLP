@@ -23,8 +23,11 @@ ENV/
 *.npy
 *.faiss
 
-# Keep assets (screenshots)
+# Keep specific folders
 !assets/
+!reports/
+!data/
+!indexes/
 
 # VTT subtitle temp files
 *.vtt
@@ -55,8 +58,7 @@ Thumbs.db
 
 # Claude Code session data
 .claude/
+.blackbox/
 
-# Eval reports (regenerated from running the eval scripts)
-*ragas_report*.json
-*answer_eval_report*.json
-*eval_report*.json
+# Node modules
+node_modules/

@@ -22,7 +22,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATA_PATH = str(_REPO_ROOT / "data" / "chunked" / "transcript_v3_t072.jsonl")
 DEFAULT_FAISS_INDEX_PATH = str(_REPO_ROOT / "indexes" / "faiss_index_072_n")
 DEFAULT_BM25_PATH = str(_REPO_ROOT / "indexes" / "bm25_072.pkl")
-DEFAULT_QUERY = "principle maximum likelihood là gì ?"
+DEFAULT_QUERY = "làm sao LLM có thể tiến hành dịch thuật được ?"
  
  
 def parse_args() -> argparse.Namespace:

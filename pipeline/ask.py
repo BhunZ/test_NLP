@@ -108,16 +108,28 @@ def kv(key: str, value: Any) -> None:
 # STAGE 9: LLM ANSWER (via Groq or Mistral, OpenAI-compatible)
 # ════════════════════════════════════════════════════════════════
 
-SYSTEM_PROMPT_VI = """Bạn là trợ giảng AI chuyên về NLP và Machine Learning.
+SYSTEM_PROMPT_VI = """You are an expert AI teaching assistant for Stanford's NLP and Machine Learning courses (CS224N, CS224U, CS224V, CS124).
 
-QUY TẮC:
-- Chỉ trả lời dựa trên NGUỒN được cung cấp.
-- Nếu các nguồn không đủ thông tin để trả lời, hãy nói rõ điều đó.
-- Giải thích đơn giản, dễ hiểu cho sinh viên.
-- Trích dẫn nguồn bằng [1], [2], [3]... khi dùng thông tin từ nó.
-- Giữ nguyên thuật ngữ tiếng Anh chuyên ngành (transformer, attention, gradient descent...).
+CORE PRINCIPLES:
+1. ONLY answer based on the provided SOURCES. Never make up information.
+2. If sources don't contain enough information, clearly state that.
+3. Adapt your response language to match the user's question language (Vietnamese → Vietnamese, English → English).
+4. Keep technical terms in English (transformer, attention, gradient descent, embedding, etc.).
 
-Trả lời bằng tiếng Việt, ngắn gọn (3-6 câu) trừ khi câu hỏi yêu cầu giải thích sâu."""
+RESPONSE STYLE:
+- Explain concepts clearly at a student-friendly level (undergraduate/graduate).
+- Use a conversational, friendly tone as if tutoring a student.
+- Be concise but thorough - aim for 3-6 sentences unless deeper explanation is needed.
+- When using information from sources, cite them as [1], [2], [3]... corresponding to the source numbers.
+- If discussing code, explain what each part does.
+
+STRUCTURE (when helpful):
+- Start with direct answer
+- Briefly explain the key concept
+- Give 1-2 example if relevant
+- Point to specific source for more detail
+
+Never say "as an AI" or "I don't have" - just answer directly from the sources."""
 
 
 def build_user_prompt(question: str, contexts: List[Dict[str, Any]]) -> str:
@@ -127,12 +139,12 @@ def build_user_prompt(question: str, contexts: List[Dict[str, Any]]) -> str:
         title = ctx.get("title") or "Unknown"
         url = ctx.get("url") or ""
         text = ctx.get("context") or ""
-        blocks.append(f"[{i}] {title}\n     URL: {url}\n     Nội dung: {text}")
+        blocks.append(f"[{i}] {title}\n     URL: {url}\n     Content: {text}")
     sources = "\n\n".join(blocks)
     return (
-        f"NGUỒN:\n{sources}\n\n"
-        f"CÂU HỎI:\n{question}\n\n"
-        f"Trả lời bằng tiếng Việt, có trích dẫn [n] khi sử dụng nguồn."
+        f"SOURCES:\n{sources}\n\n"
+        f"QUESTION:\n{question}\n\n"
+        f"Provide your answer with source citations [n] where you use information from sources."
     )
 
 
@@ -151,7 +163,7 @@ def call_groq(question: str, contexts: List[Dict[str, Any]], model: str) -> str:
             {"role": "system", "content": SYSTEM_PROMPT_VI},
             {"role": "user", "content": build_user_prompt(question, contexts)},
         ],
-        temperature=0.3,
+        temperature=0.5,
         max_tokens=1024,
     )
     return (response.choices[0].message.content or "").strip()
@@ -174,7 +186,7 @@ def call_mistral(question: str, contexts: List[Dict[str, Any]], model: str) -> s
                 {"role": "system", "content": SYSTEM_PROMPT_VI},
                 {"role": "user", "content": build_user_prompt(question, contexts)},
             ],
-            "temperature": 0.3,
+            "temperature": 0.5,
             "max_tokens": 1024,
         },
         timeout=60,

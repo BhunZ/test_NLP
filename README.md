@@ -1,14 +1,13 @@
 <p align="center">
-  <h1 align="center">🧠 YouTube Knowledge Engine</h1>
+  <h1 align="center">🧠 Stanford NLP Tutor</h1>
   <p align="center">
-    <strong>End-to-end AI pipeline that transforms YouTube channels into searchable knowledge bases.</strong>
+    <strong>AI-powered Q&A system for Stanford NLP courses using RAG pipeline.</strong>
   </p>
   <p align="center">
-    <a href="#features"><img src="https://img.shields.io/badge/Features-8-blue?style=flat-square" alt="Features"></a>
-    <img src="https://img.shields.io/badge/python-3.10%2B-blue?style=flat-square&logo=python&logoColor=white" alt="Python">
-    <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License">
-    <img src="https://img.shields.io/badge/AI%20Ready-FAISS%20%2B%20Transformers-orange?style=flat-square" alt="AI Ready">
-    <img src="https://img.shields.io/badge/export-JSON%20%7C%20CSV%20%7C%20Parquet-purple?style=flat-square" alt="Export Formats">
+    <img src="https://img.shields.io/badge/React-Frontend-blue?style=flat-square&logo=react" alt="Frontend">
+    <img src="https://img.shields.io/badge/FastAPI-Backend-blue?style=flat-square&logo=fastapi" alt="Backend">
+    <img src="https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square&logo=python&logoColor=white" alt="Python">
+    <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License">
   </p>
 </p>
 
@@ -16,94 +15,15 @@
 
 ## 📌 Overview
 
-**YouTube Knowledge Engine** is a production-grade CLI tool that scrapes YouTube videos at scale, extracts transcripts, and builds AI-ready vector databases — enabling semantic search over any channel's entire content library.
-
-Built as a modular Python package, it handles the full data pipeline from raw YouTube content to queryable knowledge base:
+**Stanford NLP Tutor** is a Vietnamese-English bilingual Q&A system powered by:
+- **Frontend**: React + TypeScript with beautiful UI
+- **Backend**: FastAPI for API handling
+- **RAG Pipeline**: 9-stage pipeline for retrieval and answer generation
+- **Data**: 250+ Stanford CS224N, CS124, CS224U, CS224V lecture videos
 
 ```
-YouTube Channel → Metadata + Transcripts → RAG Chunks → Embeddings → FAISS Index → Semantic Search
+User Query → Hybrid Retrieval (FAISS + BM25) → Reranking → LLM Answer (Groq/Mistral)
 ```
-
----
-
-## � Demo
-
-### Scraping a YouTube Channel
-
-```bash
-python -m youtube_scraper.main --channel "@jameshoffmann" --knowledge-base --workers 4
-```
-
-<p align="center">
-  <img src="assets/demo_scraping.png" alt="Scraping Demo" width="750">
-</p>
-
-### Querying the Knowledge Base
-
-```bash
-python -m youtube_scraper.main --ask "How does espresso extraction work?"
-```
-
-<p align="center">
-  <img src="assets/demo_search.png" alt="Semantic Search Demo" width="750">
-</p>
-
----
-
-## �🏗️ Architecture
-
-```mermaid
-graph TD
-    A[🎬 YouTube Input] -->|Channel / Playlist / Video| B[main.py<br/>CLI Orchestrator]
-
-    B --> C[metadata.py<br/>YouTube Data API v3]
-    B --> D[transcripts.py<br/>yt-dlp Engine]
-
-    C -->|Video IDs + Metadata| E[utils.py<br/>Data Pipeline]
-    D -->|VTT → Plain Text| E
-
-    E -->|JSON / JSONL / CSV / Parquet| F[(📁 Dataset Files)]
-
-    E -->|RAG Chunks| G[knowledge_base.py<br/>Embedding Generator]
-
-    G -->|sentence-transformers| H[all-MiniLM-L6-v2]
-    H -->|384-dim vectors| I[FAISS Index]
-
-    I --> J[search.py<br/>Semantic Search]
-    J -->|Top-K Results| K[🔍 Natural Language Query]
-
-    style A fill:#ff6b6b,color:#fff
-    style B fill:#4ecdc4,color:#fff
-    style F fill:#45b7d1,color:#fff
-    style I fill:#f9ca24,color:#333
-    style K fill:#6c5ce7,color:#fff
-```
-
-### Module Responsibilities
-
-| Module | Role |
-|--------|------|
-| `main.py` | CLI interface, workflow orchestration, argument parsing |
-| `metadata.py` | YouTube Data API v3 integration, channel handle resolution |
-| `transcripts.py` | Parallel transcript extraction via `yt-dlp`, VTT parsing |
-| `utils.py` | Multi-format export (JSON/JSONL/CSV/Parquet), RAG chunking, URL cleaning |
-| `knowledge_base.py` | Vector embedding generation using `sentence-transformers` + FAISS indexing |
-| `search.py` | Semantic search over the FAISS knowledge base |
-
----
-
-## ✨ Features
-
-| # | Feature | Description |
-|---|---------|-------------|
-| 1 | **Multi-Source Scraping** | Supports channels, playlists, and individual videos |
-| 2 | **Smart URL Cleaning** | Accepts messy URLs, `@handles`, shorts links, and raw IDs |
-| 3 | **Parallel Downloads** | Configurable `--workers` for concurrent transcript fetching |
-| 4 | **Rate Limit Handling** | Automatic exponential backoff on YouTube 429 errors |
-| 5 | **Resume Support** | Interrupted scrapes resume exactly where they left off |
-| 6 | **Multi-Format Export** | JSON, JSONL, CSV, and Parquet dataset outputs |
-| 7 | **RAG Dataset Generation** | Sentence-boundary-aware chunking for LLM retrieval systems |
-| 8 | **Semantic Search** | Natural language queries over video transcripts via FAISS |
 
 ---
 
@@ -111,243 +31,228 @@ graph TD
 
 ### Prerequisites
 
-```bash
-pip install google-api-python-client yt-dlp
-```
+1. **Python 3.10+**
+2. **Node.js 18+** (for frontend)
+3. **API Keys** (see below)
 
-For AI features (knowledge base + semantic search):
-
-```bash
-pip install sentence-transformers faiss-cpu numpy pandas pyarrow
-```
-
-### Set Your API Key
+### Install Dependencies
 
 ```bash
-# Windows (PowerShell)
-$env:YOUTUBE_API_KEY="your_key_here"
+# Python dependencies
+pip install -r requirements.txt
 
-# Windows (CMD)
-set YOUTUBE_API_KEY=your_key_here
-
-# macOS / Linux
-export YOUTUBE_API_KEY=your_key_here
+# Frontend dependencies
+cd frontend
+npm install
+cd ..
 ```
 
-> Get your free API key from the [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
+### API Keys Setup
+
+Create `.env` file in project root:
+
+```bash
+# Required
+GROQ_API_KEY=your_groq_api_key_here
+MISTRAL_API_KEY=your_mistral_api_key_here
+
+# Optional (for Query Rewrite - requires Ollama running locally)
+# OLLAMA_MODEL=qwen2.5:3b
+```
+
+> Get free API keys from:
+> - **Groq**: https://console.groq.com/
+> - **Mistral**: https://console.mistral.ai/
+
+### Run the Application
+
+**Option 1: Start both backend and frontend**
+
+```bash
+# Terminal 1 - Backend (port 8001)
+uvicorn backend.api:app --reload --port 8001
+
+# Terminal 2 - Frontend
+cd frontend
+npm run dev
+```
+
+**Option 2: Backend only (for API testing)**
+
+```bash
+uvicorn backend.api:app --reload --port 8001
+```
+
+Then open http://localhost:5173 in your browser.
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Frontend  │────▶│   Backend   │────▶│   Pipeline  │
+│  (React)    │     │ (FastAPI)   │     │  (Python)   │
+└─────────────┘     └─────────────┘     └─────────────┘
+                                            │
+                  ┌─────────────────────────┼─────────────────────────┐
+                  │                         │                         │
+            ┌─────▼─────┐            ┌─────▼─────┐            ┌─────▼─────┐
+            │  Stage 7  │            │  Stage 8  │            │  Stage 9  │
+            │ Retrieve  │            │   Merge   │            │ LLM Answer│
+            └───────────┘            └───────────┘            └───────────┘
+```
+
+### Pipeline Stages
+
+| Stage | Name | Description |
+|-------|------|-------------|
+| 01 | Crawl | (Already done - transcripts in `data/`) |
+| 02 | Clean | Clean and normalize transcripts |
+| 03 | Chunk | Split into semantic chunks (~500 chars) |
+| 04 | Enrich | Add metadata (topic keywords, etc.) |
+| 05 | Index | Build FAISS + BM25 indexes |
+| 06 | Query Rewrite | Vietnamese → English expansion (Ollama) |
+| 07 | Retrieve | Hybrid retrieval (FAISS + BM25) |
+| 08 | Merge Context | Group chunks by video |
+| 09 | LLM Answer | Generate answer via Groq/Mistral |
+
+---
+
+## 📁 Project Structure
+
+```
+youtube-rag-scraper/
+├── backend/              # FastAPI backend (api.py, rag_service.py)
+├── frontend/             # React + TypeScript frontend
+├── pipeline/             # RAG pipeline stages
+│   ├── stage_06_query_rewrite/   # Query rewriting (Ollama)
+│   ├── stage_07_retrieve/        # Hybrid retriever
+│   ├── stage_08_merge_context/   # Context merging
+│   └── stage_09_llm_answer/      # LLM generation
+├── data/                 # Processed data
+│   ├── chunked/          # Chunked transcripts
+│   └── cleaned/         # Cleaned transcripts
+├── indexes/              # FAISS + BM25 indexes
+├── reports/              # Benchmark evaluation results
+├── embed__data/         # Evaluation scripts
+├── evaluation/           # Additional evaluation code
+├── tests/               # Test files
+└── dead/                # Deprecated/legacy files (for review)
+```
 
 ---
 
 ## 💻 Usage
 
-### Scrape a Channel
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/health` | GET | Health check |
+| `/api/v1/ask` | POST | Non-streaming Q&A |
+| `/api/v1/ask/stream` | POST | Streaming Q&A (SSE) |
+
+### Example Request
 
 ```bash
-python -m youtube_scraper.main --channel "@jameshoffmann" --workers 4
+curl -X POST http://localhost:8001/api/v1/ask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "Attention mechanism hoat dong nhu the nao?",
+    "top_k": 6,
+    "llm_provider": "groq",
+    "rerank": false,
+    "enable_rewrite": false
+  }'
 ```
 
-### Scrape a Playlist
+### Frontend Features
+
+- **Bilingual**: Works with both Vietnamese and English queries
+- **Settings**: Adjust LLM provider, Top-K, Rewrite, Course filter
+- **Streaming**: Real-time answer streaming
+- **Sources**: Clickable citations with YouTube video links
+- **Confidence**: Shows answer confidence level
+
+---
+
+## ⚙️ Configuration
+
+### Frontend Settings
+
+| Setting | Options | Description |
+|---------|---------|-------------|
+| LLM Provider | Groq / Mistral | Choose LLM backend |
+| Top-K | 1-15 | Number of chunks to retrieve |
+| Rewrite | On/Off | Enable query rewriting (requires Ollama) |
+| Rerank | On/Off | Enable cross-encoder reranking |
+| Course Filter | All / CS224N / CS124 / CS224U / CS224V | Filter by course |
+
+### Backend Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `GROQ_API_KEY` | Yes | Groq API key |
+| `MISTRAL_API_KEY` | Yes | Mistral API key |
+| `OLLAMA_MODEL` | No | Ollama model for query rewrite (default: qwen2.5:3b) |
+
+---
+
+## 🧪 Running Tests
 
 ```bash
-python -m youtube_scraper.main --playlist PLBsP89CPrMeOpKhXiKyXg8AjiConuTXvI
+# Backend tests
+cd backend
+pytest
+
+# Or run specific test
+python -m pytest backend/tests/test_rag_utils.py -v
 ```
 
-### Scrape a Single Video
+---
+
+## 📊 Benchmark Reports
+
+Evaluation results are stored in `reports/` folder:
+
+- `ragas_report_FINAL.json` - RAGAS benchmark results
+- `answer_eval_FINAL.json` - Answer quality evaluation
+
+See `reports/README.md` for details.
+
+---
+
+## 🔧 Troubleshooting
+
+### Backend not starting?
 
 ```bash
-python -m youtube_scraper.main --video https://youtu.be/dQw4w9WgXcQ
+# Check if port is in use
+netstat -ano | findstr 8001
+
+# Try different port
+uvicorn backend.api:app --port 8002
 ```
 
-### Export as CSV or Parquet
+### Frontend not connecting to backend?
 
-```bash
-python -m youtube_scraper.main --channel "@mkbhd" --format csv --output mkbhd_dataset.csv
-python -m youtube_scraper.main --channel "@mkbhd" --format parquet --output mkbhd_dataset.parquet
-```
+Check `frontend/vite.config.ts` - the proxy target should match your backend port (default: 8001).
 
-### Build a Knowledge Base
+### Query Rewrite not working?
 
-```bash
-python -m youtube_scraper.main --channel "@jameshoffmann" --knowledge-base --output coffee_knowledge.json
-```
-
-This generates:
-
-```
-coffee_knowledge.json              # Full metadata + transcripts
-coffee_knowledge_rag.jsonl         # Chunked RAG dataset
-coffee_knowledge_embeddings.npy    # 384-dim sentence embeddings
-coffee_knowledge_vector_index.faiss # Searchable FAISS index
-```
-
-### Query the Knowledge Base
-
-```bash
-python -m youtube_scraper.main --ask "How does espresso extraction work?"
-```
-
-**Example Output:**
-
-```
-============================================================
-🔍 Question:
-   How does espresso extraction work?
-============================================================
-
-📚 Top 5 Results:
-
-  [1] James Hoffmann – The Ultimate Espresso Guide
-      "Extraction refers to dissolving soluble compounds from
-       the coffee bed. The key variables are dose, yield, and..."
-
-  [2] James Hoffmann – Dialing In Espresso
-      "When we talk about under-extraction, we mean that not
-       enough of the soluble material has been dissolved..."
-```
-
----
-
-## 📂 Project Structure
-
-```
-youtube_scraper/
-├── main.py              # CLI entry point & workflow orchestrator
-├── metadata.py          # YouTube API: video IDs, metadata, handle resolution
-├── transcripts.py       # yt-dlp transcript download + VTT parsing
-├── utils.py             # Export formats, RAG chunking, URL cleaning
-├── knowledge_base.py    # Sentence-transformers + FAISS index builder
-└── search.py            # Semantic search engine
-```
-
----
-
-## 🧪 Supported Input Formats
-
-The URL cleaner automatically normalizes all of these:
-
-| Input Type | Examples |
-|-----------|----------|
-| **Video** | `https://youtube.com/watch?v=VIDEO_ID`, `https://youtu.be/VIDEO_ID`, `https://youtube.com/shorts/VIDEO_ID` |
-| **Playlist** | `https://youtube.com/playlist?list=PLAYLIST_ID`, `https://youtube.com/watch?v=ID&list=PLAYLIST_ID` |
-| **Channel** | `https://youtube.com/channel/UC...`, `https://youtube.com/@handle`, `https://youtube.com/c/name`, `https://youtube.com/user/name` |
-
----
-
-## ⚙️ CLI Reference
-
-| Argument | Type | Default | Description |
-|----------|------|---------|-------------|
-| `--video` | `str` | — | YouTube video ID or URL |
-| `--playlist` | `str` | — | YouTube playlist ID or URL |
-| `--channel` | `str` | — | YouTube channel ID, URL, or @handle |
-| `--ask` | `str` | — | Query an existing knowledge base |
-| `--output` | `str` | `scraped_transcripts.json` | Output file path |
-| `--format` | `str` | `json` | Export format: `json`, `jsonl`, `csv`, `parquet` |
-| `--workers` | `int` | `1` | Parallel download threads |
-| `--langs` | `str` | `en,en-GB,en-US` | Subtitle language codes |
-| `--delay` | `int` | `4` | Delay between downloads (seconds) |
-| `--cookies` | `str` | `cookies.txt` | Path to browser cookies file |
-| `--rag` | flag | — | Generate RAG-ready JSONL dataset |
-| `--knowledge-base` | flag | — | Build FAISS vector index |
-
----
-
-## 🧠 How the AI Pipeline Works
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant CLI as main.py
-    participant YT as YouTube API
-    participant DL as yt-dlp
-    participant RAG as RAG Chunker
-    participant EMB as Sentence Transformers
-    participant DB as FAISS Index
-
-    U->>CLI: --channel "@handle" --knowledge-base
-    CLI->>YT: Resolve handle → UC channel ID
-    CLI->>YT: Fetch all video IDs (uploads playlist)
-    CLI->>YT: Batch fetch metadata (50/request)
-    CLI->>DL: Download subtitles (parallel workers)
-    DL-->>CLI: VTT → plain text transcripts
-    CLI->>RAG: Chunk transcripts (~600 chars)
-    RAG-->>CLI: JSONL with metadata per chunk
-    CLI->>EMB: Encode chunks → 384-dim vectors
-    EMB-->>CLI: numpy embeddings array
-    CLI->>DB: Build FAISS IndexFlatL2
-    DB-->>CLI: .faiss index file
-    U->>CLI: --ask "question"
-    CLI->>EMB: Encode question
-    CLI->>DB: Search top-K neighbors
-    DB-->>U: Ranked transcript chunks
-```
-
----
-
-## 📊 Output Schema
-
-### Video Metadata (JSON)
-
-```json
-{
-  "id": "dQw4w9WgXcQ",
-  "title": "Video Title",
-  "description": "...",
-  "published_at": "2023-01-01T00:00:00Z",
-  "channel_title": "Channel Name",
-  "tags": ["tag1", "tag2"],
-  "thumbnail_url": "https://i.ytimg.com/vi/.../hqdefault.jpg",
-  "duration": "PT10M30S",
-  "view_count": 1000000,
-  "like_count": 50000,
-  "comment_count": 2000,
-  "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-  "transcript": "Full transcript text...",
-  "transcript_language": "en",
-  "transcript_error": null
-}
-```
-
-### RAG Chunk (JSONL)
-
-```json
-{
-  "video_id": "dQw4w9WgXcQ",
-  "title": "Video Title",
-  "channel": "Channel Name",
-  "chunk_id": 3,
-  "text": "Extraction refers to dissolving soluble compounds from..."
-}
-```
-
----
-
-## 🛡️ Rate Limiting & Resilience
-
-- **Automatic backoff**: Starts at configurable delay, doubles on each `429` response
-- **Ceiling cap**: Never exceeds 60s between requests
-- **Recovery**: Delay halves after successful requests following rate limits
-- **Resume**: Progress saved after every single video — crash-safe
-- **Thread safety**: File writes and delay tracking use locks for parallel workers
-
----
-
-## 📋 Requirements
-
-| Package | Required For | Install |
-|---------|-------------|---------|
-| `google-api-python-client` | Core (metadata) | `pip install google-api-python-client` |
-| `yt-dlp` | Core (transcripts) | `pip install yt-dlp` |
-| `sentence-transformers` | Knowledge base | `pip install sentence-transformers` |
-| `faiss-cpu` | Knowledge base | `pip install faiss-cpu` |
-| `numpy` | Knowledge base | `pip install numpy` |
-| `pandas` | Parquet export | `pip install pandas` |
-| `pyarrow` | Parquet export | `pip install pyarrow` |
+1. Make sure Ollama is running: `ollama serve`
+2. Pull the model: `ollama pull qwen2.5:3b`
+3. Check the model is available: `ollama list`
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+MIT License - See LICENSE file.
 
 ---
+
+## 👤 Author
+
+Built with ❤️ for Stanford NLP courses.
