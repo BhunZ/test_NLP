@@ -9,6 +9,9 @@ from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
 from dotenv import load_dotenv
 from langchain_core.documents import Document
 
+# Import language detection module
+from .language_detection import detect_language, _detect_lang, _detect_and_correct_language
+
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -43,20 +46,6 @@ def _parse_citation_numbers(text: str) -> List[int]:
         if n not in out:
             out.append(n)
     return out
-
-
-def _detect_lang(query: str) -> str:
-    # Minimal heuristic: Vietnamese diacritics => vi; ASCII-only => en/unknown.
-    if re.search(r"[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễ"
-                 r"ìíịỉĩòóọỏõôồốộổỗơờớợởỡ"
-                 r"ùúụủũưừứựửữỳýỵỷỹđ"
-                 r"ÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄ"
-                 r"ÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠ"
-                 r"ÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]", query):
-        return "vi"
-    if re.fullmatch(r"[\x00-\x7F\s]+", query or ""):
-        return "en"
-    return "unknown"
 
 
 @dataclass
@@ -273,14 +262,16 @@ class RagService:
         t_ans = time.time()
         
         stream_fn = stream_groq if llm_provider == "groq" else stream_mistral
+        corrected_query, detected_lang, _ = _detect_and_correct_language(query)
         
         try:
             async for token in stream_fn(
-                question=query,
+                question=corrected_query,
                 contexts=merged_contexts,
                 model=llm_model,
                 system_prompt=self._ask_mod.SYSTEM_PROMPT_VI,
-                build_user_prompt_fn=self._ask_mod.build_user_prompt
+                build_user_prompt_fn=self._ask_mod.build_user_prompt,
+                detected_lang=detected_lang
             ):
                 full_answer += token
                 yield {"event": "token", "data": {"text": token}}
@@ -365,7 +356,8 @@ class RagService:
         # Stage 9 answer
         t_ans = time.time()
         llm_model = self.cfg.default_llm_models.get(llm_provider, "")
-        answer_text = self._ask_mod.call_llm(llm_provider, llm_model, query, merged_contexts)
+        corrected_query, detected_lang, _ = _detect_and_correct_language(query)
+        answer_text = self._ask_mod.call_llm(llm_provider, llm_model, corrected_query, merged_contexts, detected_lang)
         answer_latency_ms = int((time.time() - t_ans) * 1000)
 
         citations = _parse_citation_numbers(answer_text)

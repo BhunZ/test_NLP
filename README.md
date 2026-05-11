@@ -102,6 +102,35 @@ Then open http://localhost:5173 in your browser.
 
 ---
 
+## 📦 Pre-built Models & Data Included
+
+**✅ No need to rebuild** - The repository includes everything you need to start immediately:
+
+| Folder | Contents | Size |
+|--------|----------|------|
+| `indexes/` | FAISS vector index + BM25 index | ~50MB |
+| `data/chunked/transcript_v3_t072.jsonl` | 250+ Stanford lecture transcripts | ~10MB |
+| `frontend/dist/` | Built frontend (ready to serve) | ~500KB |
+| `lid.176.bin` | FastText language detection model | 125MB |
+
+### What's included:
+- ✅ Vector search index (FAISS) for semantic retrieval
+- ✅ BM25 keyword search index
+- ✅ 250+ video transcripts from CS224N, CS124, CS224U, CS224V
+- ✅ Built frontend (no need to run `npm run build`)
+- ✅ FastText model for language detection fallback
+
+### Just run these commands:
+```bash
+pip install -r requirements.txt
+python -m uvicorn backend.api:app --reload --port 8000
+# Open http://localhost:8000 in browser
+```
+
+If you want to rebuild everything from scratch (optional), see [SETUP.md](SETUP.md).
+
+---
+
 ## 🏗️ Architecture
 
 ```

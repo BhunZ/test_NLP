@@ -1,0 +1,57 @@
+\section{Giao diện người dùng và triển khai hệ thống}
+
+\subsection{Lựa chọn công nghệ giao diện}
+
+Trong quá trình phát triển hệ thống, nhóm nghiên cứu đã cân nhắc giữa hai giải pháp giao diện phổ biến cho ứng dụng AI: Streamlit/Gradio và React. Sau khi đánh giá các yếu tố về khả năng tùy biến, trải nghiệm người dùng, và khả năng mở rộng, nhóm đã lựa chọn React làm công nghệ chính cho lớp giao diện.
+
+Lý do chính cho sự lựa chọn này bao gồm: (1) React cung cấp khả năng tùy biến giao diện hoàn toàn theo yêu cầu, không bị giới hạn bởi các component có sẵn như Streamlit; (2) Kiến trúc component-based cho phép tái sử dụng code và dễ dàng bảo trì; (3) Hệ sinh thái Tailwind CSS và Shadcn/ui cung cấp các UI components chất lượng cao; (4) Khả năng xử lý real-time streaming tốt hơn thông qua EventSource API.
+
+Giao diện được xây dựng bằng React 18 kết hợp với TypeScript đảm bảo type safety, sử dụng Tailwind CSS cho styling và Shadcn/ui cho các component cơ bản như button, dialog, sheet. Phần backend được phát triển bằng FastAPI với khả năng xử lý Streaming Server-Sent Events (SSE) cho việc stream câu trả lời theo thời gian thực.
+
+\subsection{Giao diện trò chuyện}
+
+Giao diện trò chuyện được thiết kế theo mô hình chat hiện đại, tương tự các chatbot phổ biến như ChatGPT hay Claude. Người dùng có thể nhập câu hỏi bằng tiếng Việt hoặc tiếng Anh, và hệ thống sẽ tự động phát hiện ngôn ngữ và điều chỉnh câu trả lời tương ứng.
+
+Thành phần chính của giao diện trò chuyện bao gồm: (1) InputBar - thanh nhập liệu với khả năng tự động resize theo nội dung, hỗ trợ Enter để gửi và Shift+Enter để xuống dòng; (2) MessageBubble - hiển thị tin nhắn của người dùng và AI với định dạng Markdown; (3) StageIndicator - hiển thị các giai đoạn xử lý của hệ thống bao gồm Khởi tạo, Dịch câu hỏi, Tìm dữ liệu, Tổng hợp, và Viết câu trả lời.
+
+Hệ thống cung cấp hai chế độ trả lời: streaming (theo thời gian thực) và non-streaming. Với chế độ streaming, câu trả lời được hiển thị từng token một, tạo cảm giác tương tác liên tục và cho phép người dùng nhận được phản hồi ngay lập tức. Ngoài ra, giao diện còn hiển thị các thông tin bổ sung như độ tin cậy của câu trả lời (high/medium/low), thời gian xử lý, và số lượng nguồn được truy xuất.
+
+Một tính năng quan trọng là thanh trạng thái cài đặt (Status Bar) nằm dưới thanh nhập liệu, cho phép người dùng nhanh chóng nhìn thấy các cấu hình hiện tại như LLM Provider (Groq/Mistral), Top-K, Rewrite, và bộ lọc khóa học. Người dùng có thể click trực tiếp vào các thông số này để thay đổi mà không cần mở menu cài đặt đầy đủ.
+
+\subsection{Hiển thị trích dẫn nguồn}
+
+Hệ thống hiển thị các trích dẫn nguồn theo định dạng [1], [2], [3]... được tích hợp trực tiếp vào trong văn bản câu trả lời. Mỗi số trích dẫn là một button có thể click được, khi di chuột qua sẽ hiển thị tooltip với thông tin về nguồn bao gồm tiêu đề video, thời điểm xuất hiện trong video, và một đoạn transcript liên quan.
+
+Khi người dùng click vào trích dẫn hoặc click vào nguồn trong danh sách, hệ thống sẽ mở PlayerModal - một cửa sổ hiển thị video YouTube với timestamp chính xác đến thời điểm được trích dẫn. Modal này cho phép người dùng xem video trực tiếp trong ứng dụng hoặc mở link YouTube bên ngoài. Ngoài ra, người dùng có thể sao chép đoạn transcript mong muốn bằng nút "Copy transcript".
+
+Danh sách nguồn (Source Grid) được hiển thị dưới mỗi câu trả lời dưới dạng cards với thumbnail video, tiêu đề, timestamp, khóa học, và đoạn transcript trích dẫn. Các cards có thể được highlight khi người dùng click vào trích dẫn trong văn bản, giúp người dùng dễ dàng xác định nguồn tương ứng.
+
+Để nâng cao trải nghiệm, hệ thống còn cung cấp các nút hành động xuất hiện khi di chuột vào câu trả lời: nút Copy để sao chép câu trả lời (tự động loại bỏ các trích dành [1], [2]) và nút Regenerate để yêu cầu tạo lại câu trả lời.
+
+\subsection{Hiển thị metadata và thông tin bổ sung}
+
+Ngoài nội dung câu trả lời chính, giao diện còn hiển thị nhiều thông tin metadata giúp người dùng đánh giá chất lượng câu trả lời. Cụ thể, mỗi câu trả lời của AI đều đi kèm badge độ tin cậy (confidence badge) với ba mức độ: Cao (●●●), Trung bình (●●○), và Thấp (●○○). Độ tin cậy được tính toán dựa trên số lượng trích dẫn được sử dụng trong câu trả lời.
+
+Thông tin về thời gian xử lý cũng được hiển thị, cho người dùng biết tổng thời gian từ khi gửi câu hỏi đến khi nhận được câu trả lời hoàn chỉnh. Thông tin này bao gồm thời gian truy xuất (retrieval latency), thời gian sinh câu trả lời (answer latency), và tổng thời gian xử lý.
+
+Số lượng nguồn được truy xuất cũng được hiển thị rõ ràng, giúp người dùng biết hệ thống đã sử dụng bao nhiêu chunks từ bao nhiêu video khác nhau để tạo câu trả lời. Điều này đặc biệt hữu ích khi người dùng muốn đánh giá độ phủ của câu trả lời.
+
+Khi Query Rewrite được bật, hệ thống còn hiển thị thông tin về câu hỏi đã được xử lý, bao gồm bản dịch literal (q1) và bản mở rộng ngữ nghĩa (q2). Điều này giúp người dùng hiểu được cách hệ thống đã tối ưu hóa câu hỏi trước khi tìm kiếm.
+
+Cuối cùng, giao diện còn hiển thị thông báo "Mọi thông tin chỉ mang tính chất tham khảo" ở phía dưới thanh nhập liệu, tương tự như các nền tảng AI phổ biến khác, nhắc nhở người dùng rằng câu trả lời được tạo ra từ nguồn được cung cấp và có thể không hoàn toàn chính xác.
+
+\subsection{Cấu hình và tùy chỉnh}
+
+Hệ thống cung cấp bảng điều khiển cài đặt (Settings Drawer) cho phép người dùng tùy chỉnh các tham số hoạt động của hệ thống. Các tùy chọn bao gồm: LLM Provider với hai lựa chọn là Groq (nhanh hơn, sử dụng Llama 3) và Mistral (thông minh hơn ở một số tác vụ); Top-K slider điều chỉnh số lượng chunks được truy xuất (từ 1 đến 15); Toggle cho Query Rewrite (dịch và mở rộng câu hỏi, yêu cầu Ollama chạy local); Toggle cho Reranking (sử dụng Cross-Encoder để xếp hạng lại kết quả); và bộ lọc khóa học cho phép giới hạn nguồn tìm kiếm theo các môn học cụ thể (CS224N, CS124, CS224U, CS224V).
+
+Tất cả các cài đặt này đều có thể được thay đổi trực tiếp từ thanh trạng thái mà không cần mở bảng cài đặt đầy đủ, giúp người dùng dễ dàng điều chỉnh trong quá trình sử dụng.
+
+\subsection{Triển khai và vận hành hệ thống}
+
+Hệ thống được triển khai theo kiến trúc client-server với hai thành phần chính chạy độc lập. Backend sử dụng Uvicorn chạy trên cổng 8001, cung cấp các API endpoints theo chuẩn REST và hỗ trợ streaming qua Server-Sent Events. Frontend sử dụng Vite development server chạy trên cổng 5173 với proxy configuration để forward các request API về backend.
+
+Để khởi chạy hệ thống, người dùng cần thực hiện các bước sau: (1) Cài đặt các thư viện Python từ requirements.txt và thư viện frontend từ npm; (2) Cấu hình các biến môi trường cần thiết bao gồm GROQ_API_KEY và MISTRAL_API_KEY trong file .env; (3) Khởi động backend bằng lệnh \texttt{uvicorn backend.api:app --reload --port 8001}; (4) Khởi động frontend bằng lệnh \texttt{npm run dev} trong thư mục frontend.
+
+Hệ thống sử dụng cơ chế lazy loading cho các components của pipeline, giúp giảm thời gian khởi động ban đầu. Indexes (FAISS và BM25) chỉ được load khi có request đầu tiên, và các module xử lý LLM chỉ được import khi thực sự cần thiết. Điều này giúp backend có thể khởi động nhanh chóng ngay cả khi làm việc với dataset lớn.
+
+Về mặt vận hành, hệ thống cung cấp endpoint health check tại \texttt{/api/v1/health} cho phép giám sát trạng thái hoạt động. Endpoint này trả về thông tin về trạng thái indexes và thời gian uptime của server, hỗ trợ việc theo dõi và phát hiện sự cố kịp thời.

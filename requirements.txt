@@ -1,37 +1,115 @@
+# =============================================================================
+# YouTube RAG Scraper - Python Dependencies
+# =============================================================================
+# Install with: pip install -r requirements.txt
+#
+# FOR BEGINNERS:
+# 1. Install Python 3.10+ from https://www.python.org/downloads/
+# 2. Open terminal/command prompt
+# 3. Run: pip install -r requirements.txt
+# 4. See SETUP.md for complete installation guide
+# =============================================================================
 
-# ========= Scraper =========
-google-api-python-client>=2.0.0
-yt-dlp>=2024.0.0
-youtube-transcript-api
-requests
+# =====================
+# CORE PYTHON
+# =====================
+# These come with Python standard library, listed for clarity
+# json, re, time, pathlib, typing, dataclasses, os, sys
 
-# ========= Embedding / Vector DB =========
-sentence-transformers>=2.2.0
-transformers<5
-faiss-cpu>=1.7.0
-numpy>=1.24.0
-rank-bm25>=0.2.2
-tqdm>=4.66.0
+# =====================
+# WEB SCRAPER
+# =====================
+google-api-python-client>=2.0.0       # YouTube Data API client
+yt-dlp>=2024.0.0                       # Download YouTube videos/audio
+youtube-transcript-api                # Get YouTube transcripts
+requests>=2.31.0                      # HTTP requests
 
-# ========= Dataset export =========
-pandas>=2.0.0
-pyarrow>=12.0.0
-# thu vien
+# =====================
+# DATA PROCESSING
+# =====================
+pandas>=2.0.0                          # Data analysis
+pyarrow>=12.0.0                       # Parquet file support
+jq                                     # JSON processing CLI tool
 
-langchain-community
-langchain-core
-jq
-langchain_huggingface
-langchain-ollama
+# =====================
+# EMBEDDINGS & VECTOR DB
+# =====================
+sentence-transformers>=2.2.0         # Text embeddings (all-MiniLM-L6-v2, etc.)
+transformers>=4.30.0,<5.0.0          # Hugging Face transformers
+faiss-cpu>=1.7.0                      # Vector similarity search
+numpy>=1.24.0                         # Numerical computing
+rank-bm25>=0.2.2                      # BM25 sparse retrieval
+tqdm>=4.66.0                          # Progress bars
 
-# ========= LLM judge providers (for evaluate_ragas.py) =========
-# Install whichever you have a key for. .env file loading is optional.
-google-genai           # Gemini (deprecated, ~20 RPD free)
-groq                   # Groq Cloud (~14k RPD on 8B)
-python-dotenv          # .env file loading
-# cerebras-cloud-sdk   # optional — only if not using OpenAI-compat HTTP
-# mistralai            # optional — only if not using OpenAI-compat HTTP
+# =====================
+# LANGCHAIN & LLM
+# =====================
+langchain-core>=0.3.0                # LangChain core
+langchain-community>=0.3.0           # LangChain integrations
+langchain_huggingface                # Hugging Face integration
+langchain-ollama                      # Ollama local LLM
 
-# ========= Answer-step evaluation metrics (evaluation/answer_eval.py) =========
-nltk                   # for BLEU score
-rouge                  # for ROUGE-1/2/L
+# =====================
+# LLM PROVIDERS (choose what you need)
+# =====================
+groq                                  # Groq Cloud API (free tier available)
+google-genai                          # Google Gemini API
+python-dotenv                         # Load .env files
+
+# =====================
+# EVALUATION METRICS
+# =====================
+nltk                                   # BLEU score for translation
+rouge                                 # ROUGE score for summarization
+
+# =====================
+# API SERVER
+# =====================
+fastapi>=0.110.0                      # FastAPI web framework
+uvicorn[standard]>=0.27.0             # ASGI server
+sse-starlette                         # Server-Sent Events for streaming
+pydantic>=2.0.0                      # Data validation
+
+# =====================
+# LANGUAGE DETECTION (fallback)
+# =====================
+langdetect                             # Language detection (fallback for uncertain cases)
+
+# =====================
+# OPTIONAL: LOCAL LLM (for query rewriting)
+# =====================
+# ollama                                # Run local LLMs (Llama, Mistral, etc.)
+                                        # Install from: https://ollama.com/
+
+# =====================
+# RERANKER (optional, for better results)
+# =====================
+FlagEmbedding                          # BGE-reranker models (BAAI/bge-reranker-v2-m3)
+                                        # Only needed if --rerank flag is used
+                                        # Can skip if not using reranker
+
+# =============================================================================
+# QUICK START
+# =============================================================================
+# 1. Create virtual environment (recommended):
+#    python -m venv venv
+#    source venv/Scripts/activate  # On Windows: venv\Scripts\activate
+#    source venv/bin/activate      # On Mac/Linux
+#
+# 2. Install dependencies:
+#    pip install -r requirements.txt
+#
+# 3. Create .env file with your API keys:
+#    GROQ_API_KEY=your_groq_key_here
+#    # Get free key at: https://console.groq.com/
+#
+# 4. Run the backend:
+#    python -m uvicorn backend.api:app --reload --port 8000
+#
+# 5. Run the frontend (requires Node.js):
+#    cd frontend
+#    npm install
+#    npm run dev
+#
+# 6. Open http://localhost:5173 in your browser
+# =============================================================================

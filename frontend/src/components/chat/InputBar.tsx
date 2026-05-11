@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { SendHorizonal, ChevronDown, ChevronUp, Zap, Layers, Settings2, Filter, Check, X } from 'lucide-react';
+import { SendHorizonal, Zap, Layers, Settings2, Filter, Check, X } from 'lucide-react';
 import { Button } from '../ui/button';
 import type { Settings } from '../settings/SettingsDrawer';
 import { cn } from '../../utils/cn';
@@ -15,14 +15,9 @@ interface InputBarProps {
     total_latency_ms?: number;
     total_chunks_retrieved?: number;
   } | null;
+  isStreaming?: boolean;
+  elapsedTime?: number;
 }
-
-const COURSE_LABELS: Record<string, string> = {
-  'CS224N': 'CS224N',
-  'CS124': 'CS124',
-  'CS224U': 'CS224U',
-  'CS224V': 'CS224V',
-};
 
 const COURSE_OPTIONS = [
   { id: null, label: 'Tất cả' },
@@ -32,10 +27,10 @@ const COURSE_OPTIONS = [
   { id: 'CS224V', label: 'CS224V: Conversational AI' },
 ];
 
-export function InputBar({ onSend, disabled, placeholder = 'Hỏi gì đó về NLP...', inputRef, settings, onSettingsChange, meta }: InputBarProps) {
+export function InputBar({ onSend, disabled, placeholder = 'Hỏi gì đó về NLP...', inputRef, settings, onSettingsChange, meta, isStreaming, elapsedTime = 0 }: InputBarProps) {
   const [query, setQuery] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [showStatusDetails, setShowStatusDetails] = useState(false);
+  const [showPopover, setShowPopover] = useState(false);
 
   const setRefs = (el: HTMLTextAreaElement | null) => {
     textareaRef.current = el;
@@ -79,81 +74,61 @@ export function InputBar({ onSend, disabled, placeholder = 'Hỏi gì đó về 
     updateSetting({ enableRewrite: !settings?.enableRewrite });
   };
 
-  const cycleCourse = () => {
+  const toggleCourse = (courseId: string) => {
     if (!settings) return;
-    const currentIndex = COURSE_OPTIONS.findIndex(c => c.id === settings.courseFilter);
-    const nextIndex = (currentIndex + 1) % COURSE_OPTIONS.length;
-    updateSetting({ courseFilter: COURSE_OPTIONS[nextIndex].id });
+    const currentCourses = settings.courseFilter || [];
+    const newCourses = currentCourses.includes(courseId)
+      ? currentCourses.filter(id => id !== courseId)
+      : [...currentCourses, courseId];
+    updateSetting({ courseFilter: newCourses });
   };
 
-  const getStatusBadges = () => {
-    if (!settings) return null;
-
-    const badges: React.ReactNode[] = [];
-
-    badges.push(
-      <button
-        key="llm"
-        onClick={cycleLLM}
-        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] bg-accent/10 text-accent font-medium hover:opacity-80 transition-opacity cursor-pointer"
-        title="Click để đổi"
-      >
-        <Zap className="w-3 h-3" />
-        {settings.llmProvider === 'groq' ? 'Groq' : 'Mistral'}
-      </button>
-    );
-
-    badges.push(
-      <span key="topk" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] bg-bg-elevated-2 text-text-dim">
-        <Layers className="w-3 h-3" />
-        Top-K: {settings.topK}
-      </span>
-    );
-
-    badges.push(
-      <button
-        key="rewrite"
-        onClick={toggleRewrite}
-        className={cn(
-          "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] cursor-pointer hover:opacity-80 transition-opacity",
-          settings.enableRewrite 
-            ? "bg-accent/10 text-accent font-medium" 
-            : "bg-bg-elevated-2 text-text-dim"
-        )}
-        title="Click để đổi"
-      >
-        <Settings2 className="w-3 h-3" />
-        Rewrite: {settings.enableRewrite ? 'Bật' : 'Tắt'}
-      </button>
-    );
-
-    const courseLabel = settings.courseFilter ? COURSE_LABELS[settings.courseFilter] || settings.courseFilter : 'Tất cả';
-    badges.push(
-      <button
-        key="course"
-        onClick={cycleCourse}
-        className={cn(
-          "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] cursor-pointer hover:opacity-80 transition-opacity",
-          settings.courseFilter
-            ? "bg-accent/10 text-accent font-medium"
-            : "bg-bg-elevated-2 text-text-dim"
-        )}
-        title="Click để đổi"
-      >
-        <Filter className="w-3 h-3" />
-        Lọc: {courseLabel}
-      </button>
-    );
-
-    return badges;
+  const getCourseLabel = () => {
+    if (!settings || settings.courseFilter.length === 0) return 'Tất cả';
+    if (settings.courseFilter.length === 1) {
+      const course = COURSE_OPTIONS.find(c => c.id === settings.courseFilter[0]);
+      return course?.label.split(':')[0] || settings.courseFilter[0];
+    }
+    return `${settings.courseFilter.length} khóa học`;
   };
 
-  const getDetailedInfo = () => {
+const getStatusBadges = () => {
     if (!settings) return null;
 
     return (
-      <div className="mt-3 p-3 bg-bg-elevated-2/50 rounded-lg border border-border/50 space-y-3">
-        {/* LLM Provider - Click to cycle */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] bg-accent/10 text-accent font-medium">
+          <Zap className="w-3 h-3" />
+          {settings.llmProvider === 'groq' ? 'Groq' : 'Mistral'}
+        </span>
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] bg-bg-elevated-2 text-text-dim">
+          <Layers className="w-3 h-3" />
+          Top-K: {settings.topK}
+        </span>
+        <span className={cn(
+          "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px]",
+          settings.enableRewrite ? "bg-accent/10 text-accent font-medium" : "bg-bg-elevated-2 text-text-dim"
+        )}>
+          <Settings2 className="w-3 h-3" />
+          Rewrite: {settings.enableRewrite ? 'Bật' : 'Tắt'}
+        </span>
+        <span className={cn(
+          "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px]",
+          settings.courseFilter.length > 0 ? "bg-accent/10 text-accent font-medium" : "bg-bg-elevated-2 text-text-dim"
+        )}>
+          <Filter className="w-3 h-3" />
+          {getCourseLabel()}
+        </span>
+      </div>
+    );
+  };
+
+  const getPopoverContent = () => {
+    if (!settings) return null;
+
+    return (
+      <div className="absolute bottom-full left-0 right-0 mb-2 p-3 bg-bg-elevated border border-border rounded-lg shadow-lg z-50 space-y-3 max-h-80 overflow-y-auto">
+        {/* LLM Provider */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-[11px] text-text-muted">
             <Zap className="w-3 h-3" />
@@ -164,7 +139,6 @@ export function InputBar({ onSend, disabled, placeholder = 'Hỏi gì đó về 
             className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-accent/10 text-accent text-[11px] font-medium hover:opacity-80 transition-opacity"
           >
             {settings.llmProvider === 'groq' ? 'Groq (Llama 3)' : 'Mistral'}
-            <span className="text-[9px] opacity-60">(click để đổi)</span>
           </button>
         </div>
 
@@ -182,11 +156,11 @@ export function InputBar({ onSend, disabled, placeholder = 'Hỏi gì đó về 
             max={15}
             value={settings.topK}
             onChange={(e) => updateSetting({ topK: parseInt(e.target.value) })}
-            className="w-full h-1.5 bg-bg-elevated rounded-lg appearance-none cursor-pointer accent-accent"
+            className="w-full h-1.5 bg-bg rounded-lg appearance-none cursor-pointer accent-accent"
           />
         </div>
 
-        {/* Rewrite Toggle - Click to toggle */}
+        {/* Rewrite Toggle */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-[11px] text-text-muted">
             <Settings2 className="w-3 h-3" />
@@ -206,42 +180,54 @@ export function InputBar({ onSend, disabled, placeholder = 'Hỏi gì đó về 
             ) : (
               <><X className="w-3 h-3" /> Tắt</>
             )}
-            <span className="text-[9px] opacity-60">(click để đổi)</span>
           </button>
         </div>
 
-        {/* Course Filter - Click to cycle */}
-        <div className="flex items-center justify-between">
+        {/* Course Filter - Multi-select */}
+        <div className="space-y-2">
           <div className="flex items-center gap-2 text-[11px] text-text-muted">
             <Filter className="w-3 h-3" />
             Lọc khóa học
           </div>
-          <button
-            onClick={cycleCourse}
-            className={cn(
-              "flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium transition-colors",
-              settings.courseFilter
-                ? "bg-accent/10 text-accent"
-                : "bg-bg-elevated-2 text-text-dim"
-            )}
-          >
-            {settings.courseFilter 
-              ? COURSE_LABELS[settings.courseFilter] || settings.courseFilter 
-              : 'Tất cả'}
-            <span className="text-[9px] opacity-60">(click để đổi)</span>
-          </button>
+          <div className="space-y-1 pl-5">
+            {COURSE_OPTIONS.slice(1).map((course) => (
+              <label
+                key={course.id}
+                className={cn(
+                  "flex items-center gap-2 text-[11px] cursor-pointer hover:opacity-80 transition-opacity",
+                  settings.courseFilter.includes(course.id!)
+                    ? "text-accent"
+                    : "text-text-dim"
+                )}
+              >
+                <input
+                  type="checkbox"
+                  checked={settings.courseFilter.includes(course.id!)}
+                  onChange={() => toggleCourse(course.id!)}
+                  className="w-3 h-3 rounded accent-accent"
+                />
+                {course.label}
+              </label>
+            ))}
+          </div>
         </div>
 
         {/* Meta info */}
-        {meta && (meta.total_latency_ms || meta.total_chunks_retrieved !== undefined) && (
+        {(isStreaming || meta) && (
           <div className="pt-2 border-t border-border/50 space-y-1">
-            {meta.total_latency_ms && (
+            {isStreaming && elapsedTime > 0 && (
+              <div className="flex items-center gap-2 text-[11px] text-accent animate-pulse">
+                <span>⏱️ Đang xử lý...</span>
+                <span>{elapsedTime}s</span>
+              </div>
+            )}
+            {meta && meta.total_latency_ms && !isStreaming && (
               <div className="flex items-center gap-2 text-[11px] text-text-dim">
                 <span className="text-text-muted">Thời gian xử lý:</span>
                 {(meta.total_latency_ms / 1000).toFixed(1)}s
               </div>
             )}
-            {meta.total_chunks_retrieved !== undefined && (
+            {meta && meta.total_chunks_retrieved !== undefined && (
               <div className="flex items-center gap-2 text-[11px] text-text-dim">
                 <span className="text-text-muted">Số chunks tìm được:</span>
                 {meta.total_chunks_retrieved} chunks
@@ -255,22 +241,18 @@ export function InputBar({ onSend, disabled, placeholder = 'Hỏi gì đó về 
 
   return (
     <div className="sticky bottom-0 w-full p-4 bg-gradient-to-t from-bg via-bg/80 to-transparent">
-      {/* Status Bar */}
+      {/* Status Bar - Click to open settings popover */}
       {settings && (
-        <div className="max-w-3xl mx-auto mb-2">
+        <div className="max-w-3xl mx-auto mb-2 relative">
           <div 
             className="flex flex-wrap items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => setShowStatusDetails(!showStatusDetails)}
+            onClick={() => setShowPopover(!showPopover)}
           >
             {getStatusBadges()}
-            {showStatusDetails ? (
-              <ChevronUp className="w-3 h-3 text-text-dim" />
-            ) : (
-              <ChevronDown className="w-3 h-3 text-text-dim" />
-            )}
+            <span className="text-[10px] text-text-dim opacity-60">⚙️</span>
           </div>
           
-          {showStatusDetails && getDetailedInfo()}
+          {showPopover && getPopoverContent()}
           
           {/* Disclaimer */}
           <div className="mt-2 text-[11px] text-text-dim italic text-center">

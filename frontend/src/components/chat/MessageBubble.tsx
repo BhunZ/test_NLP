@@ -11,12 +11,13 @@ interface MessageBubbleProps {
   text: string;
   isStreaming?: boolean;
   confidence?: 'high' | 'medium' | 'low';
-  onCitationClick?: (n: number) => void;
+  onCitationClick?: (rank: number) => void;
   citationLookup?: Record<number, SourceChunk>;
   meta?: {
     total_latency_ms?: number;
     total_chunks_retrieved?: number;
   } | null;
+  elapsedTime?: number;
   onRegenerate?: () => void;
 }
 
@@ -48,7 +49,7 @@ function renderCitationText(
   return result;
 }
 
-export function MessageBubble({ role, text, isStreaming, confidence, onCitationClick, citationLookup, meta, onRegenerate }: MessageBubbleProps) {
+export function MessageBubble({ role, text, isStreaming, confidence, onCitationClick, citationLookup, meta, elapsedTime = 0, onRegenerate }: MessageBubbleProps) {
   const isUser = role === 'user';
   const [copied, setCopied] = useState(false);
 
@@ -102,6 +103,11 @@ export function MessageBubble({ role, text, isStreaming, confidence, onCitationC
                 confConfig.color
               )}>
                 {confConfig.dots} {confConfig.label}
+              </span>
+            )}
+            {isStreaming && elapsedTime > 0 && (
+              <span className="flex items-center gap-1 text-[11px] text-accent animate-pulse">
+                ⏱️ {elapsedTime}s
               </span>
             )}
             {meta && !isStreaming && (

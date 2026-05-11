@@ -37,12 +37,14 @@ function App() {
     topK: 6,
     rerank: false,
     enableRewrite: false,
-    courseFilter: null,
+    courseFilter: [],
     theme: initialPrefs.theme,
   });
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const { ask, isStreaming, answer, sources, stages, answerData, errorMessage, rewrites, reset, meta } = useAskStream();
+  const [streamStartTime, setStreamStartTime] = useState<number | null>(null);
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
 
   // Check backend connection
   useEffect(() => {
@@ -65,6 +67,24 @@ function App() {
     const t = setTimeout(() => setUiToast(null), 4000);
     return () => clearTimeout(t);
   }, [errorMessage]);
+
+  // Timer for streaming elapsed time
+  useEffect(() => {
+    if (isStreaming && !streamStartTime) {
+      setStreamStartTime(Date.now());
+    } else if (!isStreaming && streamStartTime) {
+      setStreamStartTime(null);
+      setElapsedTime(0);
+    }
+  }, [isStreaming, streamStartTime]);
+
+  useEffect(() => {
+    if (!isStreaming || !streamStartTime) return;
+    const interval = setInterval(() => {
+      setElapsedTime(Math.floor((Date.now() - streamStartTime) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isStreaming, streamStartTime]);
 
   // Sync UI messages when active conversation changes
   useEffect(() => {
@@ -124,7 +144,7 @@ function App() {
       llm_provider: settings.llmProvider,
       rerank: settings.rerank,
       enable_rewrite: settings.enableRewrite,
-      course_filter: settings.courseFilter,
+      course_filter: settings.courseFilter.length > 0 ? settings.courseFilter[0] : null,
     });
   };
 
@@ -305,6 +325,7 @@ function App() {
                     onCitationClick={handleCitationClick}
                     citationLookup={Object.fromEntries(sources.map((s) => [s.rank, s]))}
                     meta={meta}
+                    elapsedTime={elapsedTime}
                   />
                   <div className="max-w-3xl mx-auto px-16 md:px-20 -mt-6 mb-4">
                     <StageIndicator stages={stages} />
@@ -342,7 +363,7 @@ function App() {
 
         <PlayerModal source={selectedSource} onClose={() => setSelectedSource(null)} />
         <SettingsDrawer open={isSettingsOpen} onOpenChange={setIsSettingsOpen} settings={settings} onSettingsChange={setSettings} />
-        <InputBar onSend={handleSend} disabled={isStreaming || backendStatus === 'checking'} inputRef={inputRef} settings={settings} onSettingsChange={setSettings} meta={meta} />
+        <InputBar onSend={handleSend} disabled={isStreaming || backendStatus === 'checking'} inputRef={inputRef} settings={settings} onSettingsChange={setSettings} meta={meta} isStreaming={isStreaming} elapsedTime={elapsedTime} />
         {uiToast && (
           <div className="absolute bottom-24 right-4 z-50 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger backdrop-blur">
             {uiToast}

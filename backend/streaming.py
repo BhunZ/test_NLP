@@ -7,7 +7,8 @@ async def stream_groq(
     contexts: List[Dict[str, Any]], 
     model: str,
     system_prompt: str,
-    build_user_prompt_fn: Any
+    build_user_prompt_fn: Any,
+    detected_lang: str = "unknown"
 ) -> AsyncGenerator[str, None]:
     try:
         from groq import Groq
@@ -23,7 +24,7 @@ async def stream_groq(
     client = Groq(api_key=api_key)
     
     # Use the same prompt building logic from ask.py
-    user_prompt = build_user_prompt_fn(question, contexts)
+    user_prompt = build_user_prompt_fn(question, contexts, detected_lang)
     
     stream = client.chat.completions.create(
         model=model,
@@ -45,7 +46,8 @@ async def stream_mistral(
     contexts: List[Dict[str, Any]], 
     model: str,
     system_prompt: str,
-    build_user_prompt_fn: Any
+    build_user_prompt_fn: Any,
+    detected_lang: str = "unknown"
 ) -> AsyncGenerator[str, None]:
     # For mistral, we'll use the official SDK if possible, or fall back to requests with stream=True
     # Using a simplified version here.
@@ -55,7 +57,7 @@ async def stream_mistral(
         yield "Error: MISTRAL_API_KEY not found"
         return
 
-    user_prompt = build_user_prompt_fn(question, contexts)
+    user_prompt = build_user_prompt_fn(question, contexts, detected_lang)
     
     try:
         async with httpx.AsyncClient() as client:

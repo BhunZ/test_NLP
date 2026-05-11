@@ -132,7 +132,7 @@ STRUCTURE (when helpful):
 Never say "as an AI" or "I don't have" - just answer directly from the sources."""
 
 
-def build_user_prompt(question: str, contexts: List[Dict[str, Any]]) -> str:
+def build_user_prompt(question: str, contexts: List[Dict[str, Any]], detected_lang: str = "unknown") -> str:
     """Build the user message with numbered sources."""
     blocks = []
     for i, ctx in enumerate(contexts, 1):
@@ -141,14 +141,23 @@ def build_user_prompt(question: str, contexts: List[Dict[str, Any]]) -> str:
         text = ctx.get("context") or ""
         blocks.append(f"[{i}] {title}\n     URL: {url}\n     Content: {text}")
     sources = "\n\n".join(blocks)
+    
+    # Language instruction based on detected language
+    lang_instruction = ""
+    if detected_lang == "vi":
+        lang_instruction = "Trả lời bằng tiếng Việt. "
+    elif detected_lang == "en":
+        lang_instruction = "Answer in English. "
+    
     return (
         f"SOURCES:\n{sources}\n\n"
         f"QUESTION:\n{question}\n\n"
+        f"{lang_instruction}"
         f"Provide your answer with source citations [n] where you use information from sources."
     )
 
 
-def call_groq(question: str, contexts: List[Dict[str, Any]], model: str) -> str:
+def call_groq(question: str, contexts: List[Dict[str, Any]], model: str, detected_lang: str = "unknown") -> str:
     try:
         from groq import Groq  # type: ignore
     except ImportError as e:
@@ -161,7 +170,7 @@ def call_groq(question: str, contexts: List[Dict[str, Any]], model: str) -> str:
         model=model,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT_VI},
-            {"role": "user", "content": build_user_prompt(question, contexts)},
+            {"role": "user", "content": build_user_prompt(question, contexts, detected_lang)},
         ],
         temperature=0.5,
         max_tokens=1024,
@@ -169,7 +178,7 @@ def call_groq(question: str, contexts: List[Dict[str, Any]], model: str) -> str:
     return (response.choices[0].message.content or "").strip()
 
 
-def call_mistral(question: str, contexts: List[Dict[str, Any]], model: str) -> str:
+def call_mistral(question: str, contexts: List[Dict[str, Any]], model: str, detected_lang: str = "unknown") -> str:
     import requests  # type: ignore
     api_key = os.getenv("MISTRAL_API_KEY")
     if not api_key:
@@ -184,7 +193,7 @@ def call_mistral(question: str, contexts: List[Dict[str, Any]], model: str) -> s
             "model": model,
             "messages": [
                 {"role": "system", "content": SYSTEM_PROMPT_VI},
-                {"role": "user", "content": build_user_prompt(question, contexts)},
+                {"role": "user", "content": build_user_prompt(question, contexts, detected_lang)},
             ],
             "temperature": 0.5,
             "max_tokens": 1024,
@@ -196,12 +205,12 @@ def call_mistral(question: str, contexts: List[Dict[str, Any]], model: str) -> s
 
 
 def call_llm(provider: str, model: str, question: str,
-             contexts: List[Dict[str, Any]]) -> str:
+             contexts: List[Dict[str, Any]], detected_lang: str = "unknown") -> str:
     p = provider.lower().strip()
     if p == "groq":
-        return call_groq(question, contexts, model)
+        return call_groq(question, contexts, model, detected_lang)
     if p == "mistral":
-        return call_mistral(question, contexts, model)
+        return call_mistral(question, contexts, model, detected_lang)
     raise ValueError(f"Unknown LLM provider: {provider!r}")
 
 

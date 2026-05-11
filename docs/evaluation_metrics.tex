@@ -1,0 +1,27 @@
+\subsection{Khung đánh giá}
+\label{sec:evaluation-framework}
+
+Hệ thống đánh giá trong dự án sử dụng hai script: \texttt{evaluation/metrics\_eval.py} (rank metrics) và \texttt{evaluation/ragas\_eval.py} (kết hợp rank + semantic + RAGAS-style). Kết quả được chia thành ba nhóm, được tính tự động và không phụ thuộc vào LLM cho phần deterministic.
+
+\begin{table}[t]
+\centering
+\caption{Các nhóm metric trong hệ thống đánh giá.}
+\label{tab:metrics-overview}
+\small
+\begin{tabular}{l l l p{0.44\textwidth}}
+\hline
+\textbf{Nhóm} & \textbf{Tính bởi} & \textbf{Chi phí} & \textbf{Metrics} \\ \hline
+Rank metrics & \texttt{metrics\_eval.py} & Zero LLM & Hit@K, Precision@K, MRR / MRR@3, MAP, DCG@K, nDCG@K (tại K = 1, 3, 5, 6, 10, 20) \\
+Semantic metrics & \texttt{ragas\_eval.py} & Zero LLM & max\_query\_context\_sim, mean\_query\_context\_sim, semantic\_precision@K, semantic\_recall \\
+RAGAS-style & \texttt{ragas\_eval.py} & 7--8 LLM calls/query & Context Precision (MAP-style), Context Relevancy, Context Recall (claim-based), Context Entities Recall \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Rank metrics} (deterministic): kiểm tra vị trí của \texttt{source\_chunk\_id} trong danh sách retrieved chunks. Hit@K = 1 nếu chunk đúng xuất hiện trong top-K, ngược lại 0. MRR trung bình nghịch đảo rank: $1 / \text{rank}$. nDCG@K chuẩn hóa DCG theo xếp hạng lý tưởng, phạt nặng khi chunk đúng nằm ở rank cao. Precision@K (deterministic) khác với Context Precision (LLM-judged):前者 chỉ dựa vào vị trí,后者 đánh giá LLM xác nhận chunk đó có ``hữu ích cho câu hỏi'' hay không.
+
+\textbf{Semantic metrics} (embedder-based, deterministic): sử dụng \texttt{all-MiniLM-L6-v2} để embed query và contexts, tính cosine similarity. max\_query\_context\_sim = cosine lớn nhất giữa query và bất kỳ chunk nào trong top-K. mean\_query\_context\_sim = cosine trung bình qua toàn bộ K chunks. semantic\_precision@K = tỷ lệ chunks có cosine $\geq 0.5$. semantic\_recall = 1.0 nếu tồn tại chunk có cosine với source\_chunk $\geq 0.7$, ngược lại 0.0.
+
+\textbf{RAGAS-style metrics} (LLM-judged): Context Precision (MAP-style) đánh giá từng retrieved chunk ``có hữu ích để trả lời câu hỏi không'' và tính MAP qua các ranks — ưu tiên chunk hữu ích xuất hiện sớm. Context Relevancy đếm số câu liên quan trong mỗi chunk, tính trung bình tỷ lệ relevant\_sentences / total\_sentences. Context Recall tách ground-truth answer thành atomic claims, kiểm tra mỗi claim có được hỗ trợ bởi retrieved contexts hay không. Context Entities Recall trích xuất thực thể kỹ thuật (thuật toán, phương pháp, dataset, công thức) từ ground truth và đếm bao nhiêu entity xuất hiện trong retrieved contexts.
+
+LLM judge mặc định là Groq (\texttt{llama-3.3-70b-versatile}, ~1000 RPD), hỗ trợ fallback chain (Groq → Mistral → OpenRouter → Ollama) tự động chuyển provider khi gặp rate limit. Context Precision và Context Relevancy được gộp trong một LLM call duy nhất để giảm ~30-40\% token usage.

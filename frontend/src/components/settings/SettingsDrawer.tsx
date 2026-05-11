@@ -9,7 +9,7 @@ export interface Settings {
   topK: number;
   rerank: boolean;
   enableRewrite: boolean;
-  courseFilter: string | null;
+  courseFilter: string[];
   theme: ThemeMode;
 }
 
@@ -147,20 +147,30 @@ export function SettingsDrawer({ open, onOpenChange, settings, onSettingsChange 
           {/* Course Filter */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-text">Lọc theo khóa học</h3>
-            <div className="grid grid-cols-1 gap-1">
-              {COURSES.map((c) => (
-                <button
-                  key={c.id ?? 'all'}
-                  onClick={() => update({ courseFilter: c.id })}
+            <div className="space-y-2">
+              {COURSES.slice(1).map((c) => (
+                <label
+                  key={c.id}
                   className={cn(
-                    "text-left px-3 py-2 text-xs rounded-md transition-colors",
-                    settings.courseFilter === c.id 
-                      ? "bg-accent/10 text-accent font-semibold border border-accent/30" 
+                    "flex items-center gap-3 px-3 py-2 text-xs rounded-md cursor-pointer transition-colors",
+                    settings.courseFilter.includes(c.id!)
+                      ? "bg-accent/10 text-accent border border-accent/30" 
                       : "text-text-dim hover:bg-bg-elevated-2 border border-transparent"
                   )}
                 >
+                  <input
+                    type="checkbox"
+                    checked={settings.courseFilter.includes(c.id!)}
+                    onChange={(e) => {
+                      const newCourses = e.target.checked
+                        ? [...settings.courseFilter, c.id!]
+                        : settings.courseFilter.filter(id => id !== c.id);
+                      update({ courseFilter: newCourses });
+                    }}
+                    className="w-4 h-4 rounded border-border accent-accent"
+                  />
                   {c.label}
-                </button>
+                </label>
               ))}
             </div>
           </div>

@@ -63,3 +63,6 @@ Thumbs.db
 
 # Node modules
 node_modules/
+
+# Large model files (download if needed)
+lid.176.bin

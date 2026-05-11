@@ -1,0 +1,106 @@
+\subsection{Chiến lược chunking}
+\label{sec:chunking-strategy}
+
+Trong bài toán hỏi--đáp trên video transcript, chiến lược phân đoạn (chunking) là bước quyết định chất lượng retrieval và độ chính xác của citation theo timestamp. Nếu chunk quá ngắn, embedding thiếu ngữ cảnh và LLM dễ hiểu sai; nếu chunk quá dài, một chunk có thể chứa nhiều chủ đề, làm embedding bị smear và citation bị kém sắc nét. Với domain transcript có timestamp, chúng tôi xác định ba ràng buộc đồng thời: (i) đủ ngữ cảnh cho embedding và generation, (ii) giữ được time order để bảo toàn tính đúng đắn của timestamp, và (iii) giới hạn độ rộng thời gian để citation có độ phân giải cao.
+
+Trong các hệ thống chunking đơn giai đoạn, một nhược điểm phổ biến là việc gom nhóm theo topic trước rồi merge có thể vô tình gộp nhầm các đoạn cách xa nhau theo thời gian, dẫn đến citation sai. Do đó, chúng tôi thiết kế pipeline hai giai đoạn, trong đó giai đoạn thứ hai chỉ phép thao tác trên các chunk liền kề theo thời gian.
+
+\subsection{Two-pass pipeline}
+
+Pipeline chunking gồm hai lượt xử lý tuần tự:
+
+\begin{description}
+\item[Pass 1 — Time Chunking] Duyệt các segment theo thứ tự thời gian, tích lũy segment vào chunk hiện tại cho đến khi một trong các điều kiện đóng chunk được kích hoạt.
+
+\item[Pass 2 — Embedding-based Semantic Merge] Duyệt các time-chunks theo đúng thứ tự thời gian, embed từng chunk bằng mô hình sentence-transformer, rồi hợp nhất các cặp chunk liền kề có độ tương đồng cosine vượt ngưỡng và vẫn thỏa mãn ràng buộc về số token và thời lượng.
+\end{description}
+
+Thứ tự xử lý này đảm bảo rằng mọi thao tác semantic đều tôn trọng timeline — time order là ràng buộc bất khả vi phạm trong toàn bộ pipeline.
+
+\subsection{Pass 1: Time-based chunking}
+\label{subsubsec:time-chunking}
+
+Đầu vào của Pass 1 là transcript đã được tách câu ở bước tiền xử lý, ở dạng danh sách các segment có cấu trúc \texttt{text}, \texttt{start}, \texttt{duration}, sắp xếp theo thứ tự thời gian.
+
+Mỗi segment được làm sạch trước khi tích lũy: (i) sửa lỗi ASR phổ biến (các contraction bị mất dấu như ``dont'' → ``don't''), (ii) loại bỏ filler words và filler phrases theo danh sách định nghĩa trước, (iii) loại bỏ ký tự đặc biệt không cần thiết, (iv) chuẩn hóa khoảng trắng và viết hoa đầu câu. Số token được ước lượng bằng hàm xấp xỉ tuyến tính \texttt{token\_count(text) = round(word\_count × 1.3)}, phù hợp cho transcript tiếng Anh.
+
+Các điều kiện đóng chunk được kiểm tra tuần tự theo mức ưu tiên sau:
+
+\begin{enumerate}
+\item \textbf{Biên giới câu (ưu tiên cao nhất):} Nếu segment hiện tại kết thúc bằng \texttt{. ! ?} và số token trong chunk hiện tại đã đạt \texttt{MIN\_TOKENS}, chunk được đóng tại đây. Điều này tránh cắt ngang một câu hoàn chỉnh — chunk luôn kết thúc ở ranh giới câu khi có đủ nội dung.
+\item \textbf{Trần token (hard ceiling):} Nếu số token vượt \texttt{MAX\_TOKENS + MAX\_TOKEN\_BUFFER} (buffer = 20 token), chunk được đóng bắt buộc để tránh lan sang chủ đề khác.
+\item \textbf{Giới hạn thời lượng (hard ceiling):} Nếu thời lượng chunk đạt \texttt{MAX\_DURATION}, chunk được đóng để đảm bảo citation theo timestamp có độ phân giải cao.
+\item \textbf{Ngắt theo khoảng trống:} Nếu đã đạt \texttt{MIN\_TOKENS} và \texttt{MIN\_DURATION}, khi khoảng trống giữa segment hiện tại và segment kế tiếp lớn hơn \texttt{SILENCE\_GAP\_CLOSE} (3s), chunk được đóng — đây thường là dấu hiệu chuyển ý hoặc tạm dừng tự nhiên.
+\item \textbf{Cuối video:} Chunk cuối cùng được đóng khi hết transcript.
+\end{enumerate}
+
+Các tham số chính của Pass 1 được tóm tắt ở Bảng~\ref{tab:chunking-params}.
+
+\begin{table}[t]
+\centering
+\caption{Các tham số chunking trong dự án.}
+\label{tab:chunking-params}
+\small
+\begin{tabular}{l c p{0.62\textwidth}}
+\hline
+Tham số & Giá trị & Ý nghĩa \\
+\hline
+\texttt{MIN\_TOKENS} & 150 & Số token tối thiểu để chunk đủ ngữ cảnh embedding. \\
+\texttt{MAX\_TOKENS} & 200 & Số token mục tiêu tối đa. Chunk được đóng khi vượt 200 + 20 (buffer). \\
+\texttt{MAX\_TOKEN\_BUFFER} & 20 & Vùng đệm cho phép trước khi force-close theo token. \\
+\texttt{MIN\_DURATION} & 20s & Thời lượng tối thiểu nhằm tránh chunk quá ngắn. \\
+\texttt{MAX\_DURATION} & 90s & Thời lượng mục tiêu, đảm bảo citation không quá rộng. \\
+\texttt{SILENCE\_GAP\_CLOSE} & 3s & Ngưỡng khoảng trống để đóng chunk tại điểm ngắt tự nhiên. \\
+\hline
+\end{tabular}
+\end{table}
+
+Chunk sau khi đóng sẽ lưu metadata thời gian (\texttt{start\_time}, \texttt{end\_time}, \texttt{duration}), video ID, title, course, và được gán nhãn \texttt{chunk\_type = "knowledge\_unit"} (nếu đạt \texttt{MIN\_TOKENS}) hoặc \texttt{"tail\_short"} (nếu chunk cuối không đạt ngưỡng, được giữ lại thay vì drop để tránh mất thông tin).
+
+\subsection{Pass 2: Embedding-based semantic merge}
+\label{subsubsec:embedding-merge}
+
+Sau Pass 1, chúng tôi có một tập time-chunks cố định. Tuy nhiên, một số cặp chunk liền kề có thể bị tách rời do thỏa mãn điều kiện đóng chunk quá sớm (ví dụ: một câu đủ 150 token nhưng ngữ nghĩa vẫn tiếp nối sang câu tiếp theo). Pass 2 giải quyết vấn đề này bằng cách hợp nhất các chunk liền kề có nội dung ngữ nghĩa gần nhau.
+
+\textbf{Cách thức hoạt động:} Với mỗi video, toàn bộ time-chunks được embed bằng mô hình sentence-transformer \texttt{all-MiniLM-L6-v2} (model nhẹ 80MB, CPU-friendly). Chúng tôi chọn model nhẹ thay vì bge-m3 vì mục đích duy nhất của Pass 2 là so sánh độ tương đồng giữa các chunk liền kề — không cần embedding chất lượng cao nhất cho retrieval, chỉ cần đủ để phân biệt ngữ nghĩa. Điều này cho phép Pass 2 chạy nhanh trên toàn bộ corpus mà không cần GPU.
+
+Với mỗi cặp chunk liền kề $(C_i, C_{i+1})$, cosine similarity được tính trực tiếp từ các vector đã normalize ($s = \mathbf{v}_i \cdot \mathbf{v}_{i+1}$). Cặp được hợp nhất nếu:
+
+\[
+s \geq \text{threshold} \quad \text{và} \quad
+\text{total\_tokens} \leq \text{MERGE\_MAX\_TOKENS} \quad \text{và} \quad
+\text{total\_duration} \leq \text{MERGE\_MAX\_DURATION}
+\]
+
+trong đó \texttt{MERGE\_MAX\_TOKENS = 230} và \texttt{MERGE\_MAX\_DURATION = 120s} — rộng hơn so với giới hạn của Pass 1 để cho phép chunk sau merge tăng trưởng nhẹ. Chunk sau khi hợp nhất được gán nhãn \texttt{chunk\_type = "semantic\_unit"}.
+
+Threshold mặc định là \texttt{0.65}. Script hỗ trợ sweep nhiều giá trị (\texttt{--sweep 0.55 0.65 0.72 0.80}) để đánh giá từng ngưỡng trên eval harness và chọn giá trị tối ưu cho corpus cụ thể.
+
+\textbf{Điều kiện ràng buộc trong Pass 2:} Sau khi hợp nhất $C_i$ và $C_{i+1}$, vector neo so sánh được cập nhật thành vector của $C_{i+1}$, rồi tiếp tục so sánh với $C_{i+2}$. Đây là phương pháp moving window tiêu chuẩn, tránh hiện tượng drift khi phải re-embed văn bản đã hợp nhất. Ràng buộc time order được bảo toàn tuyệt đối: \textbf{không có thao tác semantic nào được phép gộp các chunk không liền kề theo thời gian}, khác với các phương pháp topic grouping vốn có thể nhóm nhầm các đoạn cách xa nhau và làm sai citation.
+
+\textbf{Ví dụ minh họa:} Xét một video gồm 4 time-chunks:
+
+\begin{verbatim}
+C1 (t=0-45s, 195 tokens, topic: intro)     → embed
+C2 (t=45-90s, 198 tokens, topic: intro)     → embed
+C3 (t=90-135s, 200 tokens, topic: method)  → embed
+C4 (t=135-180s, 180 tokens, topic: method) → embed
+\end{verbatim}
+
+Sau khi embed:
+\begin{itemize}
+    \item $\text{sim}(C_1, C_2) = 0.78 \geq 0.65$, tổng tokens $= 393 \leq 230$ ✗ → bị chặn bởi MERGE\_MAX\_TOKENS, không merge.
+    \item $\text{sim}(C_2, C_3) = 0.41 < 0.65$ → không merge.
+    \item $\text{sim}(C_3, C_4) = 0.71 \geq 0.65$, tổng tokens $= 380 \leq 230$ ✗ → bị chặn bởi MERGE\_MAX\_TOKENS, không merge.
+\end{itemize}
+
+Giả sử threshold giảm xuống 0.55:
+\begin{itemize}
+    \item $\text{sim}(C_3, C_4) = 0.71 \geq 0.55$, tokens $= 380 \leq 230$ ✗ → vẫn chặn.
+    \item Nếu C3 và C4 nhỏ hơn, chúng sẽ được merge thành \texttt{semantic\_unit} bao gồm nội dung từ 90s đến 180s.
+\end{itemize}
+
+Mỗi lượt chạy đều xuất báo cáo thống kê: số chunk đầu vào, số chunk đầu ra, tỷ lệ reduction, số cặp bị skip do vượt token/duration, và phân bố cosine similarity (min, p25, median, p75, max, mean) để hỗ trợ phân tích và tuning threshold.
+
+\subsection{Kết quả đầu ra}
+Mỗi chunk sau hai pass được bổ sung các trường: \texttt{chunk\_id} (định danh deterministic theo format \texttt{{video\_id}}:{{chunk\_type}}:{{version}}:{{index:04d}}), \texttt{chunk\_index} (vị trí trong timeline), và \texttt{url} (YouTube deep-link với timestamp). File đầu ra có định dạng JSONL, mỗi dòng tương ứng một chunk, có thể được nạp trực tiếp vào FAISS index hoặc vector database phục vụ retrieval.
