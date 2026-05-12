@@ -5,7 +5,7 @@ export interface AskRequest {
   top_k?: number;
   rerank?: boolean;
   llm_provider?: LLMProvider;
-  course_filter?: string | null;
+  course_filter?: string | string[] | null;
   enable_rewrite?: boolean;
 }
 

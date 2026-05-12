@@ -208,7 +208,10 @@ class RagService:
         docs = self._dedupe_and_label(docs_by_variant)
 
         if course_filter:
-            docs = [d for d in docs if (d.metadata or {}).get("course") == course_filter]
+            if isinstance(course_filter, list):
+                docs = [d for d in docs if (d.metadata or {}).get("course") in course_filter]
+            else:
+                docs = [d for d in docs if (d.metadata or {}).get("course") == course_filter]
 
         docs = docs[:top_k]
         retrieval_latency_ms = int((time.time() - t_retr) * 1000)
@@ -333,9 +336,12 @@ class RagService:
 
         docs = self._dedupe_and_label(docs_by_variant)
 
-        # Optional course filter (no-op for now unless explicitly used)
+        # Optional course filter
         if course_filter:
-            docs = [d for d in docs if (d.metadata or {}).get("course") == course_filter]
+            if isinstance(course_filter, list):
+                docs = [d for d in docs if (d.metadata or {}).get("course") in course_filter]
+            else:
+                docs = [d for d in docs if (d.metadata or {}).get("course") == course_filter]
 
         docs = docs[:top_k]
         retrieval_latency_ms = int((time.time() - t_retr) * 1000)

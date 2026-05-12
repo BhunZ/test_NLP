@@ -147,7 +147,7 @@ function App() {
       llm_provider: settings.llmProvider,
       rerank: settings.rerank,
       enable_rewrite: settings.enableRewrite,
-      course_filter: settings.courseFilter.length > 0 ? settings.courseFilter[0] : null,
+      course_filter: settings.courseFilter.length > 0 ? settings.courseFilter : null,
     });
   };
 
@@ -180,7 +180,7 @@ function App() {
       llm_provider: newModel,
       rerank: settings.rerank,
       enable_rewrite: settings.enableRewrite,
-      course_filter: settings.courseFilter.length > 0 ? settings.courseFilter[0] : null,
+      course_filter: settings.courseFilter.length > 0 ? settings.courseFilter : null,
     });
   };
 

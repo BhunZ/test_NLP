@@ -10,7 +10,7 @@ class AskRequest(BaseModel):
     top_k: int = Field(default=6, ge=1, le=20)
     rerank: bool = False
     llm_provider: Literal["groq", "mistral"] = "groq"
-    course_filter: Optional[str] = None  # accepted for v1; no-op unless implemented
+    course_filter: Optional[str | List[str]] = None
     enable_rewrite: bool = False
 
 
