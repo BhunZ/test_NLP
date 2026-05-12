@@ -21,13 +21,14 @@ interface SettingsDrawerProps {
 }
 
 const COURSES = [
-  { id: null, label: 'Tất cả' },
   { id: 'CS224N_NLP', label: 'CS224N: NLP' },
   { id: 'CS229_ML', label: 'CS229: Machine Learning' },
   { id: 'CS224U', label: 'CS224U: NLU' },
   { id: 'CS224R_RL', label: 'CS224R: RL' },
   { id: 'CS25_Transformers', label: 'CS25: Transformers' },
   { id: 'CME295_Transformers_LLMs', label: 'CME295: Transformers & LLMs' },
+  { id: 'CME296_Diffusion', label: 'CME296: Diffusion Models' },
+  { id: 'CS336_GPU_TPU', label: 'CS336: GPU/TPU Optimization' },
 ];
 
 export function SettingsDrawer({ open, onOpenChange, settings, onSettingsChange }: SettingsDrawerProps) {
@@ -150,7 +151,7 @@ export function SettingsDrawer({ open, onOpenChange, settings, onSettingsChange 
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-text">Lọc theo khóa học</h3>
             <div className="space-y-2">
-              {COURSES.slice(1).map((c) => (
+              {COURSES.map((c) => (
                 <label
                   key={c.id}
                   className={cn(
