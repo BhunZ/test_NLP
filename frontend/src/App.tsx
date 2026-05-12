@@ -361,13 +361,6 @@ function App() {
                       onOpenSource={setSelectedSource} 
                     />
                   )}
-                  {msg.sources?.length === 0 && /\[\d+\]/.test(msg.text) && (
-                    <div className="max-w-3xl mx-auto px-4 md:px-6 mb-4">
-                      <p className="text-xs text-text-dim italic">
-                        Không tìm thấy nguồn trích dẫn phù hợp với bộ lọc khóa học đã chọn
-                      </p>
-                    </div>
-                  )}
                 </div>
               ))}
 
@@ -404,13 +397,6 @@ function App() {
                       onOpenSource={setSelectedSource} 
                       isLoading={isStreaming && sources.length === 0}
                     />
-                  )}
-                  {sources.length === 0 && /\[\d+\]/.test(answer) && !isStreaming && (
-                    <div className="max-w-3xl mx-auto px-4 md:px-6 mb-4">
-                      <p className="text-xs text-text-dim italic">
-                        Không tìm thấy nguồn trích dẫn phù hợp với bộ lọc khóa học đã chọn
-                      </p>
-                    </div>
                   )}
                   {sources.length === 0 && (
                     <SourceGrid
