@@ -45,6 +45,7 @@ function App() {
   const { ask, isStreaming, answer, sources, stages, answerData, errorMessage, rewrites, reset, meta } = useAskStream();
   const [streamStartTime, setStreamStartTime] = useState<number | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [lastQuery, setLastQuery] = useState<string | null>(null);
 
   // Check backend connection
   useEffect(() => {
@@ -138,8 +139,24 @@ function App() {
     // Keep local UI responsive.
     setMessages(prev => [...prev, userMsg]);
 
+    setLastQuery(query);
     ask({
       query,
+      top_k: settings.topK,
+      llm_provider: settings.llmProvider,
+      rerank: settings.rerank,
+      enable_rewrite: settings.enableRewrite,
+      course_filter: settings.courseFilter.length > 0 ? settings.courseFilter[0] : null,
+    });
+  };
+
+  const handleRegenerate = () => {
+    if (!lastQuery || !settings) return;
+    reset();
+    setStreamStartTime(null);
+    setElapsedTime(0);
+    ask({
+      query: lastQuery,
       top_k: settings.topK,
       llm_provider: settings.llmProvider,
       rerank: settings.rerank,
@@ -320,6 +337,7 @@ function App() {
                   <MessageBubble
                     role="assistant"
                     text={answer || "Đang xử lý..."}
+                    onRegenerate={lastQuery ? handleRegenerate : undefined}
                     confidence={answerData?.confidence}
                     isStreaming={true}
                     onCitationClick={handleCitationClick}
