@@ -174,6 +174,30 @@ export function MessageBubble({ role, text, isStreaming, confidence, onCitationC
               <span className="inline-block w-2 h-4 bg-accent ml-1 animate-pulse align-middle" />
             )}
           </div>
+
+          {/* Action buttons - show below answer after streaming completes */}
+          {!isUser && !isStreaming && (
+            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/30">
+              <button
+                onClick={handleCopy}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs text-text-dim hover:text-text hover:bg-bg-elevated-2 transition-colors"
+                title="Copy answer"
+              >
+                {copied ? <Check className="w-3 h-3 text-success" /> : <Copy className="w-3 h-3" />}
+                {copied ? 'Đã copy' : 'Copy'}
+              </button>
+              {onRegenerate && (
+                <button
+                  onClick={onRegenerate}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs text-text-dim hover:text-text hover:bg-bg-elevated-2 transition-colors"
+                  title="Regenerate answer"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  Regenerate
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
