@@ -172,7 +172,7 @@ export function MessageBubble({ role, text, isStreaming, confidence, onCitationC
             <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/30">
               <button
                 type="button"
-                onClick={() => onRegenerate()}
+                onClick={() => onRegenerate && onRegenerate()}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs text-text-dim hover:text-text hover:bg-bg-elevated-2 transition-colors"
                 title="Regenerate with different model"
               >

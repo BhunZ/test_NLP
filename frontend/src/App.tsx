@@ -271,16 +271,21 @@ function App() {
   const handleScroll = () => {
     if (!scrollRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-    isUserScrolledUp.current = scrollHeight - scrollTop - clientHeight > 50;
+    const atBottom = scrollHeight - scrollTop - clientHeight <= 50;
+    isUserScrolledUp.current = !atBottom;
   };
 
-  // Scroll to bottom only when message count changes or user is at bottom
+  // Scroll to bottom when messages change, but respect user scroll position
   useEffect(() => {
     if (!scrollRef.current) return;
     if (!isUserScrolledUp.current) {
-      scrollRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      requestAnimationFrame(() => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+      });
     }
-  }, [messages.length, isStreaming]);
+  }, [messages.length]);
 
   return (
     <div className="flex h-screen bg-bg text-text overflow-hidden font-sans">
@@ -347,7 +352,7 @@ function App() {
                     confidence={msg.confidence}
                     onCitationClick={handleCitationClick}
                     citationLookup={Object.fromEntries((msg.sources ?? []).map((s) => [s.rank, s]))}
-                    onRegenerate={msg.role === 'assistant' && lastQuery ? handleRegenerate : undefined}
+                    onRegenerate={msg.role === 'assistant' && handleRegenerate ? handleRegenerate : undefined}
                   />
                   {msg.sources && msg.sources.length > 0 && (
                     <SourceGrid 
