@@ -42,6 +42,7 @@ function App() {
   });
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isUserScrolledUp = useRef(false);
   const { ask, isStreaming, answer, sources, stages, answerData, errorMessage, rewrites, reset, meta } = useAskStream();
   const [streamStartTime, setStreamStartTime] = useState<number | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
@@ -153,6 +154,23 @@ function App() {
   const handleRegenerate = () => {
     if (!lastQuery || !settings) return;
     const newModel = settings.llmProvider === 'groq' ? 'mistral' : 'groq';
+    
+    // Remove last assistant message from history
+    setConversations(prev => prev.map(c => {
+      if (c.id !== activeId) return c;
+      const lastAssistantIdx = c.messages.findLastIndex(m => m.role === 'assistant');
+      if (lastAssistantIdx === -1) return c;
+      return { ...c, messages: c.messages.slice(0, lastAssistantIdx), updatedAt: Date.now() };
+    }));
+    
+    // Also remove from local messages
+    setMessages(prev => {
+      const lastAssistantIdx = prev.findLastIndex(m => m.role === 'assistant');
+      if (lastAssistantIdx === -1) return prev;
+      return prev.slice(0, lastAssistantIdx);
+    });
+    
+    isUserScrolledUp.current = false;
     reset();
     setStreamStartTime(null);
     setElapsedTime(0);
@@ -249,12 +267,20 @@ function App() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  // Scroll to bottom
+  // Handle user scroll detection
+  const handleScroll = () => {
+    if (!scrollRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+    isUserScrolledUp.current = scrollHeight - scrollTop - clientHeight > 50;
+  };
+
+  // Scroll to bottom only when message count changes or user is at bottom
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (!scrollRef.current) return;
+    if (!isUserScrolledUp.current) {
+      scrollRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
-  }, [messages, isStreaming, answer]);
+  }, [messages.length, isStreaming]);
 
   return (
     <div className="flex h-screen bg-bg text-text overflow-hidden font-sans">
@@ -307,7 +333,7 @@ function App() {
           </div>
         </header>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto scroll-smooth no-scrollbar">
+        <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto scroll-smooth no-scrollbar">
           {messages.length === 0 && !isStreaming ? (
             <EmptyState onExampleClick={handleSend} />
           ) : (
@@ -321,6 +347,7 @@ function App() {
                     confidence={msg.confidence}
                     onCitationClick={handleCitationClick}
                     citationLookup={Object.fromEntries((msg.sources ?? []).map((s) => [s.rank, s]))}
+                    onRegenerate={msg.role === 'assistant' && lastQuery ? handleRegenerate : undefined}
                   />
                   {msg.sources && msg.sources.length > 0 && (
                     <SourceGrid 

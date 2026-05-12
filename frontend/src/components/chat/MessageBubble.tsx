@@ -50,7 +50,7 @@ function renderCitationText(
   return result;
 }
 
-export function MessageBubble({ role, text, isStreaming, confidence, onCitationClick, citationLookup, meta, elapsedTime = 0, currentModel = 'groq', onRegenerate = () => {} }: MessageBubbleProps) {
+export function MessageBubble({ role, text, isStreaming, confidence, onCitationClick, citationLookup, meta, elapsedTime = 0, onRegenerate = () => {} }: MessageBubbleProps) {
   const isUser = role === 'user';
   const [copied, setCopied] = useState(false);
 
@@ -138,15 +138,6 @@ export function MessageBubble({ role, text, isStreaming, confidence, onCitationC
                 >
                   {copied ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
                 </button>
-                {onRegenerate && (
-                  <button
-                    onClick={onRegenerate}
-                    className="p-1.5 rounded-md hover:bg-bg-elevated-2 text-text-dim hover:text-text transition-colors"
-                    title="Regenerate answer"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                  </button>
-                )}
               </div>
             )}
           </div>
@@ -177,15 +168,16 @@ export function MessageBubble({ role, text, isStreaming, confidence, onCitationC
           </div>
 
           {/* Regenerate button - show below answer after streaming completes */}
-          {!isUser && !isStreaming && onRegenerate && (
+          {!isUser && !isStreaming && (
             <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/30">
               <button
-                onClick={onRegenerate}
+                type="button"
+                onClick={() => onRegenerate()}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs text-text-dim hover:text-text hover:bg-bg-elevated-2 transition-colors"
                 title="Regenerate with different model"
               >
                 <RefreshCw className="w-3 h-3" />
-                {currentModel === 'groq' ? 'Regenerate (Mistral)' : 'Regenerate (Groq)'}
+                Regenerate
               </button>
             </div>
           )}
