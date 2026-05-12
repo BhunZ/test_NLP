@@ -22,10 +22,12 @@ interface SettingsDrawerProps {
 
 const COURSES = [
   { id: null, label: 'Tất cả' },
-  { id: 'CS224N', label: 'CS224N: NLP' },
-  { id: 'CS124', label: 'CS124: From Languages to Information' },
+  { id: 'CS224N_NLP', label: 'CS224N: NLP' },
+  { id: 'CS229_ML', label: 'CS229: Machine Learning' },
   { id: 'CS224U', label: 'CS224U: NLU' },
-  { id: 'CS224V', label: 'CS224V: Conversational AI' },
+  { id: 'CS224R_RL', label: 'CS224R: RL' },
+  { id: 'CS25_Transformers', label: 'CS25: Transformers' },
+  { id: 'CME295_Transformers_LLMs', label: 'CME295: Transformers & LLMs' },
 ];
 
 export function SettingsDrawer({ open, onOpenChange, settings, onSettingsChange }: SettingsDrawerProps) {
