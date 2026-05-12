@@ -18,6 +18,7 @@ interface MessageBubbleProps {
     total_chunks_retrieved?: number;
   } | null;
   elapsedTime?: number;
+  currentModel?: string;
   onRegenerate?: () => void;
 }
 
@@ -49,7 +50,7 @@ function renderCitationText(
   return result;
 }
 
-export function MessageBubble({ role, text, isStreaming, confidence, onCitationClick, citationLookup, meta, elapsedTime = 0, onRegenerate }: MessageBubbleProps) {
+export function MessageBubble({ role, text, isStreaming, confidence, onCitationClick, citationLookup, meta, elapsedTime = 0, currentModel = 'groq', onRegenerate = () => {} }: MessageBubbleProps) {
   const isUser = role === 'user';
   const [copied, setCopied] = useState(false);
 
@@ -175,27 +176,17 @@ export function MessageBubble({ role, text, isStreaming, confidence, onCitationC
             )}
           </div>
 
-          {/* Action buttons - show below answer after streaming completes */}
-          {!isUser && !isStreaming && (
+          {/* Regenerate button - show below answer after streaming completes */}
+          {!isUser && !isStreaming && onRegenerate && (
             <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/30">
               <button
-                onClick={handleCopy}
+                onClick={onRegenerate}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs text-text-dim hover:text-text hover:bg-bg-elevated-2 transition-colors"
-                title="Copy answer"
+                title="Regenerate with different model"
               >
-                {copied ? <Check className="w-3 h-3 text-success" /> : <Copy className="w-3 h-3" />}
-                {copied ? 'Đã copy' : 'Copy'}
+                <RefreshCw className="w-3 h-3" />
+                {currentModel === 'groq' ? 'Regenerate (Mistral)' : 'Regenerate (Groq)'}
               </button>
-              {onRegenerate && (
-                <button
-                  onClick={onRegenerate}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs text-text-dim hover:text-text hover:bg-bg-elevated-2 transition-colors"
-                  title="Regenerate answer"
-                >
-                  <RefreshCw className="w-3 h-3" />
-                  Regenerate
-                </button>
-              )}
             </div>
           )}
         </div>

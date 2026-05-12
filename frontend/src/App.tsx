@@ -152,13 +152,14 @@ function App() {
 
   const handleRegenerate = () => {
     if (!lastQuery || !settings) return;
+    const newModel = settings.llmProvider === 'groq' ? 'mistral' : 'groq';
     reset();
     setStreamStartTime(null);
     setElapsedTime(0);
     ask({
       query: lastQuery,
       top_k: settings.topK,
-      llm_provider: settings.llmProvider,
+      llm_provider: newModel,
       rerank: settings.rerank,
       enable_rewrite: settings.enableRewrite,
       course_filter: settings.courseFilter.length > 0 ? settings.courseFilter[0] : null,
