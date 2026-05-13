@@ -33,12 +33,12 @@ User Query → Hybrid Retrieval (FAISS + BM25) → Reranking → LLM Answer (Gro
 
 ```bash
 # Clone the entire repository
-git clone https://github.com/BhunZ/test_NLP.git
-cd test_NLP
+git clone https://github.com/BhunZ/stanford-nlp-tutor.git
+cd stanford-nlp-tutor
 
 # Or clone a specific branch
-git clone -b feature/pipeline-reorg https://github.com/BhunZ/test_NLP.git
-cd test_NLP
+git clone -b feature/pipeline-reorg https://github.com/BhunZ/stanford-nlp-tutor.git
+cd stanford-nlp-tutor
 
 # If you already cloned but want this specific branch
 git checkout feature/pipeline-reorg
