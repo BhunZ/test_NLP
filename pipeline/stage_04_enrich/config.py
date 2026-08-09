@@ -46,8 +46,13 @@ class Pipeline2Config:
 
 
 def build_pipeline2_config() -> Pipeline2Config:
+    # Project-relative paths (was hardcoded D:/NLP → broken on any other machine).
+    # pipeline/stage_04_enrich/config.py → repo root is parents[2]
+    root = Path(__file__).resolve().parents[2]
     return Pipeline2Config(
-        root_dir=Path("D:/NLP"),
-        input_path=Path("D:/NLP/data/chunked/transcript_v3.jsonl"),
-        output_path=Path("D:/NLP/data/chunked/transcript_v4.jsonl"),
+        root_dir=root,
+        # t072 = ngưỡng embedding-merge 0.72, bản cho retrieval tốt nhất trong sweep
+        # (0.55 / 0.65 / 0.72 / 0.80). Cùng bản mà ask.py và orchestrator.py đang dùng.
+        input_path=root / "data" / "chunked" / "transcript_v3_t072.jsonl",
+        output_path=root / "data" / "chunked" / "transcript_v4.jsonl",
     )

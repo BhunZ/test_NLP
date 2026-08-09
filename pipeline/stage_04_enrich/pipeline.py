@@ -13,8 +13,8 @@ Output: transcript_v4.jsonl
 
 from collections import defaultdict
 
-from config1 import build_pipeline2_config
-from utils1 import (
+from config import build_pipeline2_config
+from utils import (
     detect_topic,
     extract_keywords,
     format_timestamp,
